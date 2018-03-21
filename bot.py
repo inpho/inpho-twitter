@@ -3,7 +3,7 @@ from keys import *
 
 class MyStreamListener(tweepy.StreamListener):
 
-    def on_status(self, status)
+    def on_status(self, status):
         time.sleep(60) #change later to be variable 60-600
         api.update_status('@nesscoli test response', status.id)
         print(status.text)
