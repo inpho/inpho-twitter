@@ -4,9 +4,6 @@ from keys import *
 class MyStreamListener(tweepy.StreamListener):
 
     def on_status(self, status):
-        time.sleep(60) #change later to be variable 60-600
-        api.update_status('@nesscoli test response', status.id)
-        print('tweet response to: ' + status.text)
         broken_tweet = status.text.split(" ")
         del broken_tweet[0]
         del broken_tweet[len(broken_tweet)-1]
@@ -33,7 +30,10 @@ class MyStreamListener(tweepy.StreamListener):
             link = 'https://www.inphoproject.org' + inpho_json['url']
         
             response = 'InPhO - ' + title + ' - ' + link
-            print('response is: ' + response)
+
+            time.sleep(60) #change later to be variable 60-600
+            api.update_status('@nesscoli ' + response, status.id)
+            print('tweet response: ' + response + ' to: ' + status.text)
         
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
