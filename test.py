@@ -47,9 +47,12 @@ def createResponse (url, title):
     return response;
 
 #############################################################################
-full_tweet = "SEP: The Problem of Induction http://ift.tt/2nhKsKL #philosophy"
+full_tweet = "The Problem of Induction http://ift.tt/2nhKsKL #philosophy"
 
 broken_tweet = full_tweet.split(" ")
+if broken_tweet[0] != 'SEP:': #tweet wasn't a SEP tweet
+    print('not valid tweet')
+    exit(); #too forceful
 del broken_tweet[0]
 del broken_tweet[len(broken_tweet)-1]
 del broken_tweet[len(broken_tweet)-1]

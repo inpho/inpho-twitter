@@ -52,6 +52,8 @@ class MyStreamListener(tweepy.StreamListener):
 
     def on_status(self, status):
         broken_tweet = status.text.split(" ")
+        if broken_tweet[0] != 'SEP:': #tweet wasn't a SEP tweet
+            return;
         del broken_tweet[0]
         del broken_tweet[len(broken_tweet)-1]
         del broken_tweet[len(broken_tweet)-1]
@@ -80,7 +82,7 @@ class MyStreamListener(tweepy.StreamListener):
             response = createResponse(inpho_json['url'], title)
 
             time.sleep(60) #change later to be variable 60-600
-            api.update_status('@nesscoli ' + response, status.id)
+ #           api.update_status('@nesscoli ' + response, status.id)
             print('tweet response: ' + response + ' to: ' + status.text)
         
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
