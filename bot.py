@@ -35,7 +35,7 @@ def lookUp (url):
         else: #no results at all
             print('page is missing')
     else: #1 result found
-        response = creatResponse(inpho_json['url'], title)
+        response = createResponse(inpho_json['url'], title)
         return True;
     return False;
 
