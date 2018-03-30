@@ -21,7 +21,6 @@ def buildURL (broken_tweet):
     #note that if >1 is found, the first result is chosen
 #returns false otherwise
 def lookUp (url):
-    print('searching for: ' + url + ' instead')
     url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
     inpho_json = json.load(urllib.urlopen(url))
 
@@ -30,11 +29,13 @@ def lookUp (url):
         res = resDat.get('results')
         if len(res) > 0: #there was >1 result. choose 1st result
             url = res[0].get('url')
+            print('found >1 result and chose 1st option')
             response = createResponse(url, title)
             return True;
         else: #no results at all
-            print('page is missing')
+            print('no result was found')
     else: #1 result found
+        print('a result was found')
         response = createResponse(inpho_json['url'], title)
         return True;
     return False;
@@ -53,7 +54,6 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 userID = 12450802 #peoppenheimer's twitter ID
-print('testing')
 timeline = api.user_timeline(user_id = userID, count = 10)
 
 for status in timeline:
@@ -66,21 +66,25 @@ for status in timeline:
     del broken_tweet[len(broken_tweet)-1]
 
     url, title = buildURL(broken_tweet);
+    print('\nsearching for ' + title)
     url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
     inpho_json = json.load(urllib.urlopen(url))
     
     if 'url' not in inpho_json: #flag for missing page
-            print('page missing! couldn\'t find ' + title) #in future: post to text file? send alert?
-
-            #now, remove one "extra" word at a time (articles, conjunctions)
-            for word in broken_tweet:
-                if word.lower() == 'the' or word.lower() == 'of' or word.lower() == 'a' or \
-                   word.lower() == 'an' or word.lower() == 'for' or word.lower() == 'and' or \
-                   word.lower() == 'but' or word.lower() == 'or' or word.lower() == 'yet':
-                    print('removed article: ' + word)
-                    broken_tweet.remove(word)
-                    url, temp = buildURL(broken_tweet)
-                    if lookUp(url): #try to find page each time a word is removed
-                        break;
+        print('page missing! couldn\'t find ' + title) #in future: post to text file? send alert?
+        found = False
+        #now, remove one "extra" word at a time (articles, conjunctions)
+        for word in broken_tweet:
+            if word.lower() == 'the' or word.lower() == 'of' or word.lower() == 'a' or \
+                word.lower() == 'an' or word.lower() == 'for' or word.lower() == 'and' or \
+                word.lower() == 'but' or word.lower() == 'or' or word.lower() == 'yet':
+                broken_tweet.remove(word)
+                url, temp = buildURL(broken_tweet)
+                print('searching instead for ' + temp)
+                found = lookUp(url) #try to find page each time a word is removed
+                if found: 
+                    break;
+        if not found:
+            print('attemping to remove articles did not help find ' + title + '. url was: ' + url)
     else:
         response = createResponse(inpho_json['url'], title)
