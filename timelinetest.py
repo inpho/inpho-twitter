@@ -1,4 +1,4 @@
-import tweepy, urllib, json
+import tweepy, urllib, json, webbrowser
 from keys import *
 #from bot import buildURL, lookUp, createResponse #not working, need to fix
 
@@ -44,6 +44,7 @@ def lookUp (url):
 #returns response: the message to be tweeted back
 def createResponse (url, title):
     link = 'https://www.inphoproject.org' + url
+    webbrowser.open(link, new=2)
     response = 'InPhO - ' + title + ' - ' + link
     print(response)
     return response;
