@@ -26,16 +26,26 @@ def lookUp (url):
     print(inpho_json)
 
     if 'url' not in inpho_json: #could be missing OR have 2+ results
-        resDat = inpho_json.get('responseData')
-        res = resDat.get('results')
-        if len(res) > 0: #there was >1 result. choose 1st result
-            url = res[0].get('url')
-            response = createResponse(url, title)
+        if isMultiple(inpho_json):
             return True;
         else: #no results at all
             print('page is missing')
     else: #1 result found
         response = createResponse(inpho_json['url'], title)
+        return True;
+    return False;
+
+#function used to check if the query returns more than one result
+#returns true if more than one result is found
+    #note that the first result is chosen for the response
+#reutrns false otherwise
+def isMultiple (inpho_json):
+    resDat = inpho_json.get('responseData')
+    res = resDat.get('results')
+    if len(res) > 0: #there was >1 result. choose 1st result
+        url = res[0].get('url')
+        print('found >1 result and chose 1st option')
+        response = createResponse(url, title)
         return True;
     return False;
 
@@ -67,17 +77,17 @@ class MyStreamListener(tweepy.StreamListener):
         
         if 'url' not in inpho_json: #flag for missing page
             print('page missing! couldn\'t find ' + title) #in future: post to text file? send alert?
-
-            #now, remove one "extra" word at a time (articles, conjunctions)
-            for word in broken_tweet:
-                if word.lower() == 'the' or word.lower() == 'of' or word.lower() == 'a' or \
-                   word.lower() == 'an' or word.lower() == 'for' or word.lower() == 'and' or \
-                   word.lower() == 'but' or word.lower() == 'or' or word.lower() == 'yet':
-                    print('removed article: ' + word)
-                    broken_tweet.remove(word)
-                    url, temp = buildURL(broken_tweet)
-                    if lookUp(url): #try to find page each time a word is removed
-                        break;
+            if not isMultiple(inpho_json):
+                #now, remove one "extra" word at a time (articles, conjunctions)
+                for word in broken_tweet:
+                    if word.lower() == 'the' or word.lower() == 'of' or word.lower() == 'a' or \
+                       word.lower() == 'an' or word.lower() == 'for' or word.lower() == 'and' or \
+                       word.lower() == 'but' or word.lower() == 'or' or word.lower() == 'yet':
+                        print('removed article: ' + word)
+                        broken_tweet.remove(word)
+                        url, temp = buildURL(broken_tweet)
+                        if lookUp(url): #try to find page each time a word is removed
+                            break;
         else:
             response = createResponse(inpho_json['url'], title)
 
