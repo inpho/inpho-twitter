@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import tweepy, urllib, json, webbrowser, sys
+import tweepy, urllib, json, webbrowser
 from keys import *
 #from bot import buildURL, lookUp, createResponse #not working, need to fix
 
@@ -27,10 +27,8 @@ def lookUp (url):
 
     if 'url' not in inpho_json: #could be missing OR have 2+ results
         if isMultiple(inpho_json):
-            f.write(', after removing an article(s)')
             return True;
     else: #1 result found
-        f.write('found after removing an article(s)')
         response = createResponse(inpho_json['url'], title)
         return True;
     return False;
@@ -55,6 +53,8 @@ def createResponse (url, title):
     link = 'https://www.inphoproject.org' + url
 #    webbrowser.open(link, new=2) #opens link in new tab of default browser
     response = 'InPhO - ' + title + ' - ' + link
+    l.write(link)
+    l.write('\n')
     return response;
 
 
@@ -63,9 +63,10 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 userID = 12450802 #peoppenheimer's twitter ID
-timeline = api.user_timeline(user_id = userID, count = 100)
+timeline = api.user_timeline(user_id = userID, count = 50)
 i = 0
 f = open('results.txt', 'w')
+l = open('links.txt', 'w')
 for status in timeline:
     broken_tweet = status.text.split(" ")
     if broken_tweet[0] != 'SEP:': #tweet wasn't a SEP tweet
@@ -77,7 +78,7 @@ for status in timeline:
     i = i + 1
     print(i)
     url, title = buildURL(broken_tweet)
-    if i == 16 or i == 62 or i == 73 or i == 78:
+    if i == 17: #or i == 63 or i == 74 or i == 79:
         f.write('\n' + 'Santaraksita*')
         print('skipped ' + str(i))
     else:
@@ -98,11 +99,24 @@ for status in timeline:
                         url, temp = buildURL(broken_tweet)
                         found = lookUp(url) #try to find page each time a word is removed
                         if found:
+                            f.write('found after removing an article(s)')
                             break;
-                if not found:
-                    f.write('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
+                if not found: #removing articles did not help.
+                    found = lookUp(broken_tweet[len(broken_tweet)-1])
+                    if found:
+                        f.write('found by searching by last name')
+                    else:
+                        if broken_tweet[len(broken_tweet)-1][len(lastWord)-1] == 's':
+                            broken_tweet[len(broken_tweet)-1] = broken_tweet[len(broken_tweet)-1][:len(lastWord)-1]
+                            url, temp = buildURL(broken_tweet)
+                            found = lookUp(url)
+                            if found:
+                                f.write('found by removing last word plural')
+                    if not found:
+                        f.write('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
         else:
             f.write('found on first try')
             response = createResponse(inpho_json['url'], title)
 
 f.close()
+l.close()
