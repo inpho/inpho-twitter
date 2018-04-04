@@ -29,8 +29,9 @@ def lookUp (url):
         if isMultiple(inpho_json):
             return True;
     else: #1 result found
-        response = createResponse(inpho_json['url'], title)
-        return True;
+        if validUrl(inpho_json['url'])
+            response = createResponse(inpho_json['url'], title)
+            return True;
     return False;
 
 #function used to check for results from a last name only search
@@ -65,9 +66,10 @@ def isMultiple (inpho_json):
     res = resDat.get('results')
     if len(res) > 0: #there was >1 result. choose 1st result
         url = res[0].get('url')
-        f.write('found >1 result and chose 1st option')
-        response = createResponse(url, title)
-        return True;
+        if validUrl(url)
+            f.write('found >1 result and chose 1st option')
+            response = createResponse(url, title)
+            return True;
     return False;
 
 #function that assembles the reply tweet from the url and title
@@ -80,6 +82,15 @@ def createResponse (url, title):
     l.write('\n')
     return response;
 
+#function to check url is valid for responding with
+    #currently checks if article is from the "school of thought" ontology
+#returns false if it is,
+#returns true otherwise
+def validUrl (url)
+    if url.split('/')[0] == 'school_of_thought'
+        f.write('found in school of thought')
+        return False;
+    return True;
 
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
@@ -140,8 +151,9 @@ for status in timeline:
                         else:
                             f.write('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
         else:
-            f.write('found on first try')
-            response = createResponse(inpho_json['url'], title)
+            if validUrl(inpho_json['url'])
+                f.write('found on first try')
+                response = createResponse(inpho_json['url'], title)
 
 f.close()
 l.close()

@@ -31,8 +31,9 @@ def lookUp (url):
         else: #no results at all
             print('page is missing')
     else: #1 result found
-        response = createResponse(inpho_json['url'], title)
-        return True;
+        if validUrl(inpho_json['url'])
+            response = createResponse(inpho_json['url'], title)
+            return True;
     return False;
 
 #function used to check for results from a last name only search
@@ -67,9 +68,10 @@ def isMultiple (inpho_json):
     res = resDat.get('results')
     if len(res) > 0: #there was >1 result. choose 1st result
         url = res[0].get('url')
-        print('found >1 result and chose 1st option')
-        response = createResponse(url, title)
-        return True;
+        if validUrl(url)
+            print('found >1 result and chose 1st option')
+            response = createResponse(url, title)
+            return True;
     return False;
 
 #function that assembles the reply tweet from the url and title
@@ -79,6 +81,16 @@ def createResponse (url, title):
     response = 'InPhO - ' + title + ' - ' + link
     print(response)
     return response;
+
+#function to check url is valid for responding with
+    #currently checks if article is from the "school of thought" ontology
+#returns false if it is,
+#returns true otherwise
+def validUrl (url)
+    if url.split('/')[0] == 'school_of_thought'
+        print('found in school of thought')
+        return False;
+    return True;
 
 
 class MyStreamListener(tweepy.StreamListener):
@@ -129,11 +141,12 @@ class MyStreamListener(tweepy.StreamListener):
                         else:
                             print('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
         else:
-            response = createResponse(inpho_json['url'], title)
+            if validUrl(inpho_json['url'])
+                response = createResponse(inpho_json['url'], title)
 
-            time.sleep(60) #change later to be variable 60-600
- #           api.update_status('@nesscoli ' + response, status.id)
-            print('tweet response: ' + response + ' to: ' + status.text)
+                time.sleep(60) #change later to be variable 60-600
+ #                api.update_status('@nesscoli ' + response, status.id)
+                print('tweet response: ' + response + ' to: ' + status.text)
         
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
