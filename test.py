@@ -34,6 +34,29 @@ def lookUp (url):
         return True;
     return False;
 
+#function used to check for results from a last name only search
+#returns true if at least one result was found
+    #note that if >1 is found, the first result is chosen
+#returns false otherwise
+def lookUp_lastName(url):
+    url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
+    inpho_json = json.load(urllib.urlopen(url))
+
+    if 'url' not in inpho_json: #could be missing OR have 2+ results
+        resDat = inpho_json.get('responseData')
+        res = resDat.get('results')
+        if len(res) > 0: #there was >1 result. choose 1st result
+            url = res[0].get('url')
+            if res[0].get('type') == 'thinker':
+                f.write('found >1 result and chose 1st option, by searching for last name.')
+                response = createResponse(url, title)
+                return True;
+    else:
+        if inpho_json['type'] == 'thinker':
+            response = createResponse(inpho_json['url'], title)
+            return True;
+    return False;
+
 #function used to check if the query returns more than one result
 #returns true if more than one result is found
     #note that the first result is chosen for the response
@@ -78,6 +101,7 @@ inpho_json = json.load(urllib.urlopen(url))
 if 'url' not in inpho_json:
     #page was not found by searching the title
     if not isMultiple(inpho_json):
+        found = False
         #now, remove one "extra" word at a time (articles, conjunctions)
         for word in broken_tweet:
             if word.lower() == 'the' or word.lower() == 'of' or word.lower() == 'a' or \
@@ -86,8 +110,24 @@ if 'url' not in inpho_json:
                 print('removed article: ' + word)
                 broken_tweet.remove(word)
                 url, temp = buildURL(broken_tweet)
-                if lookUp(url): #try to find page each time a word is removed
+                found = lookUp(url) #try to find page each time a word is removed
+                if found:
                     break;
+        if not found: #removing articles did not help.
+                    lastWord = broken_tweet[len(broken_tweet)-1]
+                    if lastWord[len(lastWord)-1] == 's':
+                        lastWord = broken_tweet[len(broken_tweet)-1]
+                        broken_tweet[len(broken_tweet)-1] = lastWord[:len(lastWord)-1]
+                        url, temp = buildURL(broken_tweet)
+                        found = lookUp(url)
+                        if found:
+                            print('found by removing last word plural')
+                    if not found:
+                        found = lookUp_lastName(lastWord)
+                        if found:
+                            print('found by searching by last name')
+                        else:
+                            print('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
 else: 
     createResponse(inpho_json['url'], title)
 
