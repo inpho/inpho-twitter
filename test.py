@@ -30,7 +30,7 @@ def lookUp (url):
         else: #no results at all
             print('page is missing')
     else: #1 result found
-        if validUrl(inpho_json['url'])
+        if validUrl(inpho_json['url']):
             response = createResponse(inpho_json['url'], title)
             return True;
     return False;
@@ -67,7 +67,7 @@ def isMultiple (inpho_json):
     res = resDat.get('results')
     if len(res) > 0: #there was >1 result. choose 1st result
         url = res[0].get('url')
-        if validUrl(url)
+        if validUrl(url):
             print('found >1 result and chose 1st option')
             response = createResponse(url, title)
             return True;
@@ -85,8 +85,8 @@ def createResponse (url, title):
     #currently checks if article is from the "school of thought" ontology
 #returns false if it is,
 #returns true otherwise
-def validUrl (url)
-    if url.split('/')[0] == 'school_of_thought'
+def validUrl (url):
+    if url.split('/')[0] == 'school_of_thought':
         print('found in school of thought')
         return False;
     return True;
@@ -141,7 +141,7 @@ if 'url' not in inpho_json:
                         else:
                             print('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
 else:
-    if validUrl(inpho_json['url'])
+    if validUrl(inpho_json['url']):
         createResponse(inpho_json['url'], title)
 
 

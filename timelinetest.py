@@ -29,7 +29,7 @@ def lookUp (url):
         if isMultiple(inpho_json):
             return True;
     else: #1 result found
-        if validUrl(inpho_json['url'])
+        if validUrl(inpho_json['url']):
             response = createResponse(inpho_json['url'], title)
             return True;
     return False;
@@ -66,9 +66,10 @@ def isMultiple (inpho_json):
     res = resDat.get('results')
     if len(res) > 0: #there was >1 result. choose 1st result
         url = res[0].get('url')
-        if validUrl(url)
+        if validUrl(url):
             f.write('found >1 result and chose 1st option')
             response = createResponse(url, title)
+            m.write(title + ': ' + url)
             return True;
     return False;
 
@@ -86,8 +87,8 @@ def createResponse (url, title):
     #currently checks if article is from the "school of thought" ontology
 #returns false if it is,
 #returns true otherwise
-def validUrl (url)
-    if url.split('/')[0] == 'school_of_thought'
+def validUrl (url):
+    if url.split('/')[0] == 'school_of_thought':
         f.write('found in school of thought')
         return False;
     return True;
@@ -101,6 +102,7 @@ timeline = api.user_timeline(user_id = userID, count = 100)
 i = 0
 f = open('results.txt', 'w')
 l = open('links.txt', 'w')
+m = open('multLinks.txt', 'w')
 for status in timeline:
     broken_tweet = status.text.split(" ")
     if broken_tweet[0] != 'SEP:': #tweet wasn't a SEP tweet
@@ -151,9 +153,10 @@ for status in timeline:
                         else:
                             f.write('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
         else:
-            if validUrl(inpho_json['url'])
+            if validUrl(inpho_json['url']):
                 f.write('found on first try')
                 response = createResponse(inpho_json['url'], title)
 
 f.close()
 l.close()
+m.close()
