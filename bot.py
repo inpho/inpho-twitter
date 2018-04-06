@@ -1,4 +1,8 @@
-import tweepy, time, urllib, json
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+import tweepy, time, urllib.request, urllib.parse, urllib.error, json
 from keys import *
 
 #function used to add '+' in between words from the tweet
@@ -22,7 +26,7 @@ def buildURL (broken_tweet):
 def lookUp (url):
     print('searching for: ' + url + ' instead')
     url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
-    inpho_json = json.load(urllib.urlopen(url))
+    inpho_json = json.load(urllib.request.urlopen(url))
     print(inpho_json)
 
     if 'url' not in inpho_json: #could be missing OR have 2+ results
@@ -42,7 +46,7 @@ def lookUp (url):
 #returns false otherwise
 def lookUp_lastName(url):
     url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
-    inpho_json = json.load(urllib.urlopen(url))
+    inpho_json = json.load(urllib.request.urlopen(url))
 
     if 'url' not in inpho_json: #could be missing OR have 2+ results
         resDat = inpho_json.get('responseData')
@@ -108,7 +112,7 @@ class MyStreamListener(tweepy.StreamListener):
         #url containing json data for the search query of the title
         url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
         
-        inpho_json = json.load(urllib.urlopen(url))
+        inpho_json = json.load(urllib.request.urlopen(url))
         
         if 'url' not in inpho_json: #flag for missing page
             print('page missing! couldn\'t find ' + title) #in future: post to text file? send alert?

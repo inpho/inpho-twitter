@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-import tweepy, urllib, json, webbrowser
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+import tweepy, urllib.request, urllib.parse, urllib.error, json, webbrowser
 from keys import *
 #from bot import buildURL, lookUp, createResponse #not working, need to fix
 
@@ -23,7 +27,7 @@ def buildURL (broken_tweet):
 #returns false otherwise
 def lookUp (url):
     url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
-    inpho_json = json.load(urllib.urlopen(url))
+    inpho_json = json.load(urllib.request.urlopen(url))
 
     if 'url' not in inpho_json: #could be missing OR have 2+ results
         if isMultiple(inpho_json):
@@ -40,7 +44,7 @@ def lookUp (url):
 #returns false otherwise
 def lookUp_lastName(url):
     url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
-    inpho_json = json.load(urllib.urlopen(url))
+    inpho_json = json.load(urllib.request.urlopen(url))
 
     if 'url' not in inpho_json: #could be missing OR have 2+ results
         resDat = inpho_json.get('responseData')
@@ -65,11 +69,12 @@ def isMultiple (inpho_json):
     resDat = inpho_json.get('responseData')
     res = resDat.get('results')
     if len(res) > 0: #there was >1 result. choose 1st result
+        #for entry in res
+            #compare with sep_dir
         url = res[0].get('url')
         if validUrl(url):
             f.write('found >1 result and chose 1st option')
             response = createResponse(url, title)
-            m.write(title + ': ' + url)
             return True;
     return False;
 
@@ -121,9 +126,11 @@ for status in timeline:
 
         f.write('\n' + title + ': ')
         url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
-        inpho_json = json.load(urllib.urlopen(url))
-        
+        inpho_json = json.load(urllib.request.urlopen(url))
+
         if 'url' not in inpho_json: #flag for missing page
+            if isMultiple(inpho_json):
+                m.write('\n' + url)
             if not isMultiple(inpho_json): 
                 found = False
                 #now, remove one "extra" word at a time (articles, conjunctions)

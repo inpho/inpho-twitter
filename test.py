@@ -1,4 +1,5 @@
-import urllib, json
+from __future__ import print_function
+import urllib.request, urllib.parse, urllib.error, json
 
 #function used to add '+' in between words from the tweet
 #returns title: the formal title of the article
@@ -19,9 +20,9 @@ def buildURL (broken_tweet):
     #note that if >1 is found, the first result is chosen
 #returns false otherwise
 def lookUp (url):
-    print('searching for: ' + url + ' instead')
+    print(('searching for: ' + url + ' instead'))
     url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
-    inpho_json = json.load(urllib.urlopen(url))
+    inpho_json = json.load(urllib.request.urlopen(url))
     print(inpho_json)
 
     if 'url' not in inpho_json: #could be missing OR have 2+ results
@@ -41,7 +42,7 @@ def lookUp (url):
 #returns false otherwise
 def lookUp_lastName(url):
     url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
-    inpho_json = json.load(urllib.urlopen(url))
+    inpho_json = json.load(urllib.request.urlopen(url))
 
     if 'url' not in inpho_json: #could be missing OR have 2+ results
         resDat = inpho_json.get('responseData')
@@ -108,7 +109,7 @@ url, title = buildURL(broken_tweet);
 url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
 
 #this next line opens the url and reads the json data
-inpho_json = json.load(urllib.urlopen(url))
+inpho_json = json.load(urllib.request.urlopen(url))
 
 if 'url' not in inpho_json:
     #page was not found by searching the title
@@ -119,7 +120,7 @@ if 'url' not in inpho_json:
             if word.lower() == 'the' or word.lower() == 'of' or word.lower() == 'a' or \
                word.lower() == 'an' or word.lower() == 'for' or word.lower() == 'and' or \
                word.lower() == 'but' or word.lower() == 'or' or word.lower() == 'yet':
-                print('removed article: ' + word)
+                print(('removed article: ' + word))
                 broken_tweet.remove(word)
                 url, temp = buildURL(broken_tweet)
                 found = lookUp(url) #try to find page each time a word is removed
