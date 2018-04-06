@@ -1,4 +1,6 @@
 #contains secret keys and tokens used to access bot
 keys.py
+
 *.txt
 *.pyc
+*.py.bak
