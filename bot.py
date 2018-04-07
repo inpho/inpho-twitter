@@ -3,6 +3,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import str
 import tweepy, time, urllib.request, urllib.parse, urllib.error, json
+from urllib.parse import quote
 from keys import *
 
 #function used to add '+' in between words from the tweet
@@ -13,7 +14,7 @@ def buildURL (broken_tweet):
     url = ""
     for word in broken_tweet:
         title = title + word + ' '
-        url = url + word + '+'
+        url = url + quote(word) + '+'
         
     title = title[:-1]
     url = url[:-1]

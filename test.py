@@ -1,5 +1,6 @@
 from __future__ import print_function
 import urllib.request, urllib.parse, urllib.error, json
+from urllib.parse import quote
 
 #function used to add '+' in between words from the tweet
 #returns title: the formal title of the article
@@ -9,7 +10,7 @@ def buildURL (broken_tweet):
     url = ""
     for word in broken_tweet:
         title = title + word + ' '
-        url = url + word + '+'
+        url = url + quote(word) + '+'
         
     title = title[:-1]
     url = url[:-1]

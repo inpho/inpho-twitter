@@ -4,6 +4,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import str
 import tweepy, urllib.request, urllib.parse, urllib.error, json, webbrowser
+from urllib.parse import quote
 from keys import *
 #from bot import buildURL, lookUp, createResponse #not working, need to fix
 
@@ -15,7 +16,7 @@ def buildURL (broken_tweet):
     url = ""
     for word in broken_tweet:
         title = title + word + ' '
-        url = url + word + '+'
+        url = url + quote(word) + '+'
         
     title = title[:-1]
     url = url[:-1]
@@ -103,7 +104,7 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 userID = 12450802 #peoppenheimer's twitter ID
-timeline = api.user_timeline(user_id = userID, count = 100)
+timeline = api.user_timeline(user_id = userID, count = 25)
 i = 0
 f = open('results.txt', 'w')
 l = open('links.txt', 'w')
@@ -119,50 +120,45 @@ for status in timeline:
     i = i + 1
     print(i)
     url, title = buildURL(broken_tweet)
-    if i == 18 or i == 64 or i == 75 or i == 80:
-        f.write('\n' + 'Santaraksita*')
-        print('skipped ' + str(i))
-    else:
 
-        f.write('\n' + title + ': ')
-        url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
-        inpho_json = json.load(urllib.request.urlopen(url))
-
-        if 'url' not in inpho_json: #flag for missing page
-            if isMultiple(inpho_json):
-                m.write('\n' + url)
-            if not isMultiple(inpho_json): 
-                found = False
-                #now, remove one "extra" word at a time (articles, conjunctions)
-                for word in broken_tweet:
-                    if word.lower() == 'the' or word.lower() == 'of' or word.lower() == 'a' or \
-                        word.lower() == 'an' or word.lower() == 'for' or word.lower() == 'and' or \
-                        word.lower() == 'but' or word.lower() == 'or' or word.lower() == 'yet':
-                        broken_tweet.remove(word)
-                        url, temp = buildURL(broken_tweet)
-                        found = lookUp(url) #try to find page each time a word is removed
-                        if found:
-                            f.write('found after removing an article(s)')
-                            break;
-                if not found: #removing articles did not help.
+    f.write('\n' + str(title.encode('utf8')) + ': ')
+    url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
+    inpho_json = json.load(urllib.request.urlopen(url))
+    if 'url' not in inpho_json: #flag for missing page
+        if isMultiple(inpho_json):
+            m.write('\n' + url)
+        if not isMultiple(inpho_json): 
+            found = False
+            #now, remove one "extra" word at a time (articles, conjunctions)
+            for word in broken_tweet:
+                if word.lower() == 'the' or word.lower() == 'of' or word.lower() == 'a' or \
+                    word.lower() == 'an' or word.lower() == 'for' or word.lower() == 'and' or \
+                    word.lower() == 'but' or word.lower() == 'or' or word.lower() == 'yet':
+                    broken_tweet.remove(word)
+                    url, temp = buildURL(broken_tweet)
+                    found = lookUp(url) #try to find page each time a word is removed
+                    if found:
+                        f.write('found after removing an article(s)')
+                        break;
+            if not found: #removing articles did not help.
+                lastWord = broken_tweet[len(broken_tweet)-1]
+                if lastWord[len(lastWord)-1] == 's':
                     lastWord = broken_tweet[len(broken_tweet)-1]
-                    if lastWord[len(lastWord)-1] == 's':
-                        lastWord = broken_tweet[len(broken_tweet)-1]
-                        broken_tweet[len(broken_tweet)-1] = lastWord[:len(lastWord)-1]
-                        url, temp = buildURL(broken_tweet)
-                        found = lookUp(url)
-                        if found:
-                            f.write('found by removing last word plural')
-                    if not found:
-                        found = lookUp_lastName(lastWord)
-                        if found:
-                            f.write('found by searching by last name')
-                        else:
-                            f.write('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
-        else:
-            if validUrl(inpho_json['url']):
-                f.write('found on first try')
-                response = createResponse(inpho_json['url'], title)
+                    broken_tweet[len(broken_tweet)-1] = lastWord[:len(lastWord)-1]
+                    url, temp = buildURL(broken_tweet)
+                    found = lookUp(url)
+                    if found:
+                        f.write('found by removing last word plural')
+                if not found:
+                    found = lookUp_lastName(lastWord)
+                    if found:
+                        f.write('found by searching by last name')
+                    else:
+                        f.write('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
+    else:
+        if validUrl(inpho_json['url']):
+            f.write('found on first try')
+            response = createResponse(inpho_json['url'], title)
 
 f.close()
 l.close()
