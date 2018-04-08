@@ -72,7 +72,9 @@ def isMultiple (inpho_json):
     resDat = inpho_json.get('responseData')
     res = resDat.get('results')
     if len(res) > 0: #there was >1 result. choose 1st result
-        url = res[0].get('url')
+        for entry in res:
+            if entry.get('label') == title:
+                url = entry.get('url')
         if validUrl(url):
             print('found >1 result and chose 1st option')
             response = createResponse(url, title)
@@ -106,12 +108,18 @@ class MyStreamListener(tweepy.StreamListener):
             return;
         del broken_tweet[0]
         del broken_tweet[len(broken_tweet)-1]
+        sep_url = broken_tweet[len(broken_tweet)-1]
         del broken_tweet[len(broken_tweet)-1]
 
         url, title = buildURL(broken_tweet);
         
         #url containing json data for the search query of the title
-        url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
+ #       url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
+
+        sep_url = requests.get(sep_url).url
+        sep_url = sep_url.split('/')
+        sep_title = sep_url[len(sep_url)-2]
+        url = 'https://inphoproject.org/entity.json?sep=' + sep_title + '&redirect=True'
         
         inpho_json = json.load(urllib.request.urlopen(url))
         

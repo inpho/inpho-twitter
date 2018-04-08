@@ -3,8 +3,9 @@ from __future__ import print_function
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
-import tweepy, urllib.request, urllib.parse, urllib.error, json, webbrowser
+import tweepy, urllib.request, urllib.parse, urllib.error, json, webbrowser, requests
 from urllib.parse import quote
+from requests import get
 from keys import *
 #from bot import buildURL, lookUp, createResponse #not working, need to fix
 
@@ -66,15 +67,15 @@ def lookUp_lastName(url):
 #returns true if more than one result is found
     #note that the first result is chosen for the response
 #reutrns false otherwise
-def isMultiple (inpho_json):
+def isMultiple (inpho_json, title):
     resDat = inpho_json.get('responseData')
     res = resDat.get('results')
     if len(res) > 0: #there was >1 result. choose 1st result
-        #for entry in res
-            #compare with sep_dir
-        url = res[0].get('url')
+        for entry in res:
+            if entry.get('label') == title: #compare with label
+                url = entry.get('url')
         if validUrl(url):
-            f.write('found >1 result and chose 1st option')
+            f.write('found >1 result and chose the correct match')
             response = createResponse(url, title)
             return True;
     return False;
@@ -87,6 +88,7 @@ def createResponse (url, title):
     response = 'InPhO - ' + title + ' - ' + link
     l.write(link)
     l.write('\n')
+    print(response)
     return response;
 
 #function to check url is valid for responding with
@@ -104,30 +106,38 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 userID = 12450802 #peoppenheimer's twitter ID
-timeline = api.user_timeline(user_id = userID, count = 25)
+timeline = api.user_timeline(user_id = userID, count = 100)
 i = 0
 f = open('results.txt', 'w')
 l = open('links.txt', 'w')
 m = open('multLinks.txt', 'w')
 for status in timeline:
     broken_tweet = status.text.split(" ")
+
     if broken_tweet[0] != 'SEP:': #tweet wasn't a SEP tweet
         print('not SEP tweet')
         continue;
     del broken_tweet[0]
     del broken_tweet[len(broken_tweet)-1]
+    sep_url = broken_tweet[len(broken_tweet)-1]
     del broken_tweet[len(broken_tweet)-1]
     i = i + 1
     print(i)
     url, title = buildURL(broken_tweet)
-
+    
     f.write('\n' + str(title.encode('utf8')) + ': ')
-    url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
+ #   url = 'https://www.inphoproject.org/entity.json?redirect=true&q=' + url
+ 
+    sep_url = requests.get(sep_url).url
+    sep_url = sep_url.split('/')
+    sep_title = sep_url[len(sep_url)-2]
+    url = 'https://inphoproject.org/entity.json?sep=' + sep_title + '&redirect=True'
+    
     inpho_json = json.load(urllib.request.urlopen(url))
+    
+    
     if 'url' not in inpho_json: #flag for missing page
-        if isMultiple(inpho_json):
-            m.write('\n' + url)
-        if not isMultiple(inpho_json): 
+        if not isMultiple(inpho_json, title): 
             found = False
             #now, remove one "extra" word at a time (articles, conjunctions)
             for word in broken_tweet:
