@@ -68,32 +68,32 @@ class MyStreamListener(tweepy.StreamListener):
         broken_tweet = status.text.split(" ")
         if broken_tweet[0] != 'SEP:': #tweet wasn't a SEP tweet
             print('not SEP tweet')
-            continue;
-        del broken_tweet[0]
-        del broken_tweet[len(broken_tweet)-1]
-        sep_url = broken_tweet[len(broken_tweet)-1]
-        del broken_tweet[len(broken_tweet)-1]
-
-        url, title = buildURL(broken_tweet);
-        
-        sep_url = requests.get(sep_url).url #get redirect URL
-        sep_url = sep_url.split('/')
-        sep_title = sep_url[len(sep_url)-2] #get sep_dir value to search by
-        url = 'https://inphoproject.org/entity.json?sep=' + sep_title + '&redirect=True'
-        
-        inpho_json = json.load(urllib.request.urlopen(url))
-        
-        if 'url' not in inpho_json: #flag for missing page
-            print('page missing! couldn\'t find ' + title) #in future: post to text file? send alert?
-            if not isMultiple(inpho_json):
-                print('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
         else:
-            if validUrl(inpho_json['url']):
-                response = createResponse(inpho_json['url'], title)
+            del broken_tweet[0]
+            del broken_tweet[len(broken_tweet)-1]
+            sep_url = broken_tweet[len(broken_tweet)-1]
+            del broken_tweet[len(broken_tweet)-1]
 
-                time.sleep(60) #change later to be variable 60-600
- #                api.update_status('@nesscoli ' + response, status.id)
-                print('tweet response: ' + response + ' to: ' + status.text)
+            url, title = buildURL(broken_tweet);
+            
+            sep_url = requests.get(sep_url).url #get redirect URL
+            sep_url = sep_url.split('/')
+            sep_title = sep_url[len(sep_url)-2] #get sep_dir value to search by
+            url = 'https://inphoproject.org/entity.json?sep=' + sep_title + '&redirect=True'
+            
+            inpho_json = json.load(urllib.request.urlopen(url))
+            
+            if 'url' not in inpho_json: #flag for missing page
+                print('page missing! couldn\'t find ' + title) #in future: post to text file? send alert?
+                if not isMultiple(inpho_json):
+                    print('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
+            else:
+                if validUrl(inpho_json['url']):
+                    response = createResponse(inpho_json['url'], title)
+
+ #                   time.sleep(60) #change later to be variable 60-600
+                    api.update_status('@nesscoli ' + response, status.id)
+                    print('tweet response: ' + response + ' to: ' + status.text)
         
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)

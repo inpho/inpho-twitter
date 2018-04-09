@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import tweepy, urllib, json, webbrowser
+import tweepy, urllib, json, webbrowser, time
 from testkeys import *
 
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
@@ -10,5 +10,6 @@ userID = 12450802 #peoppenheimer's twitter ID
 timeline = api.user_timeline(user_id = userID, count = 10)
 
 for status in timeline:
-    status.text
     api.update_status(status.text)
+    print('tweeted ' + status.text)
+    time.sleep(10)
