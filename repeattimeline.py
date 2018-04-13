@@ -7,9 +7,11 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 userID = 12450802 #peoppenheimer's twitter ID
-timeline = api.user_timeline(user_id = userID, count = 10)
+#userID = 975141243348049921
+timeline = api.user_timeline(user_id = userID, count = 5)
 
-for status in timeline:
-    api.update_status(status.text)
-    print('tweeted ' + status.text)
-    time.sleep(10)
+##for i in range(len(timeline)-1, -1, -1):
+##    api.update_status(timeline[i].text)
+##    print('tweeted ' + timeline[i].text)
+##    time.sleep(60)
+api.update_status(timeline[0].text)

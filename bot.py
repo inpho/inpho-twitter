@@ -48,6 +48,7 @@ def isMultiple (inpho_json):
 #returns false if it is,
 #returns true otherwise
 def validUrl (url):
+    #add code to check HTML for 500 error
     if url.split('/')[1] == 'school_of_thought':
         print(url + ' found in school of thought')
         return False;
@@ -58,13 +59,35 @@ def validUrl (url):
 def createResponse (url, title):
     link = 'https://www.inphoproject.org' + url
     response = 'InPhO - ' + title + ' - ' + link
-    print(response)
     return response;
 
-    
-class MyStreamListener(tweepy.StreamListener):
+auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
+api = tweepy.API(auth)
 
-    def on_status(self, status):
+userID = 975141243348049921 #userID of dummy test account
+myID = 974652683788455936
+last_tweet = api.user_timeline(user_id = myID, count = 1)[0] #last status sent by the bot
+print('last tweet was: ' + last_tweet.text)
+last_reply_id = last_tweet.in_reply_to_status_id #id of the last status the bot replied to
+print('with id of ' + str(last_reply_id))
+timeline = api.user_timeline(user_id = userID, count = 5) #change 5 based on frequency of running bot
+last_index = len(timeline)
+for x in range(0, len(timeline)):    
+    if timeline[x].id == last_reply_id:
+        last_index = x
+timeline = timeline[:last_index] #truncates tweets bot has already replied to
+
+#timeline returns count number of tweets from specified user, in order of most recent to least recent
+#reverse the order of timeline so that they are replied to in the opposite order
+for i in range(len(timeline)-1, -1, -1):
+    status = timeline[i]
+    #first check to see if bot already replied, if it has, don't continue reading timeline
+    print(status.text)
+    if status.id == last_reply_id:
+        print('already responded to ' + status.text)
+        break;
+    else:
         broken_tweet = status.text.split(" ")
         if broken_tweet[0] != 'SEP:': #tweet wasn't a SEP tweet
             print('not SEP tweet')
@@ -91,16 +114,8 @@ class MyStreamListener(tweepy.StreamListener):
                 if validUrl(inpho_json['url']):
                     response = createResponse(inpho_json['url'], title)
 
- #                   time.sleep(60) #change later to be variable 60-600
+    #                   time.sleep(60) #change later to be variable 60-600
                     api.update_status('@nesscoli ' + response, status.id)
                     print('tweet response: ' + response + ' to: ' + status.text)
-        
-auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
-api = tweepy.API(auth)
 
-userID = 975141243348049921 #userID of dummy test account
 
-streamListener = MyStreamListener()
-stream = tweepy.Stream(auth, streamListener)
-stream.filter(follow=[str(userID)]) #returns current tweets from specified user
