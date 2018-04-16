@@ -2,7 +2,7 @@ from __future__ import print_function
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
-import tweepy, time, urllib.request, urllib.parse, urllib.error, json, requests
+import tweepy, time, urllib.request, urllib.parse, urllib.error, json, requests, smtplib, random
 from urllib.parse import quote
 from requests import get
 from bs4 import BeautifulSoup
@@ -25,10 +25,12 @@ def buildURL (broken_tweet):
 #function used to check if the query returns more than one result
 #returns true if more than one result is found
 #reutrns false otherwise
+#error email sent if true
 def isMultiple (inpho_json):
     resDat = inpho_json.get('responseData')
     res = resDat.get('results')
     if len(res) > 0: #there was >1 result
+        sendEmail(title, 'Multiple results for same sep_dir.')
         print('multiple results for same sep_dir')
         return True; #notify of error
     return False;
@@ -38,11 +40,13 @@ def isMultiple (inpho_json):
     #or if the link returns an error
 #returns false if it is,
 #returns true otherwise
+#error email sent for 500 error
 def validUrl (url):
     try:
         check = urllib.request.urlopen('https://www.inphoproject.org' + url)
     except urllib.error.HTTPError as e:
-        print('500 error') #notify of error
+        print('500 error')
+        sendEmail(title, '500 error on site.')
         return False;
     if url.split('/')[1] == 'school_of_thought':
         print(url + ' found in school of thought')
@@ -52,6 +56,7 @@ def validUrl (url):
 #function that assembles the reply tweet from the url and title
 #retrieves update message from SEP RSS
 #returns response: the message to be tweeted back
+#error email sent if no RSS info
 def createResponse (url, title):
     rss = urllib.request.urlopen('https://plato.stanford.edu/rss/sep.xml')
     soup = BeautifulSoup(rss, 'html.parser')
@@ -61,7 +66,8 @@ def createResponse (url, title):
             start = str(entry.description).find('[') + 1
             end = str(entry.description).find(']')
             if start == -1 or end == -1:
-                print('rss not found') #notify of error
+                print('rss not found')
+                sendEmail(title, 'Could not find rss description.')
             else:
                 response = str(entry.description)[start:end]
             break;
@@ -69,9 +75,34 @@ def createResponse (url, title):
     response = response + '\nInPhO - ' + title + ' - ' + link
     return response;
 
+#function used to send an email in order to alert of errors found
+#err is the specified error message based on the issue
+#returns nothing, either sends email or doesn't.
+def sendEmail(title, err):
+    TO = 'vmc12@pitt.edu'
+    SUBJECT = 'InPhO Bot Error Alert'
+    TEXT = 'Error detected by bot for entry ' + title + ':\n' + err
+    BODY = '\r\n'.join(['To: %s' % TO,
+                    'From: %s' % gmail_sender,
+                    'Subject: %s' % SUBJECT,
+                    '', TEXT])
+    try:
+        server.sendmail(gmail_sender, [TO], BODY)
+        print ('email sent')
+    except:
+        print ('error sending mail')
+
+#authentication for twitter bot access
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth)
+
+#authentication for gmail access
+gmail_sender = 'vanessa.colihan@gmail.com' #create email for bot later
+gmail_passwd = PASSWD
+server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+server.ehlo()
+server.login(gmail_sender, gmail_passwd)
 
 userID = 975141243348049921 #userID of dummy test account
 myID = 974652683788455936
@@ -80,6 +111,7 @@ print('last tweet was: ' + last_tweet.text)
 last_reply_id = last_tweet.in_reply_to_status_id #id of the last status the bot replied to
 print('with id of ' + str(last_reply_id))
 timeline = api.user_timeline(user_id = userID, count = 5) #change 5 based on frequency of running bot
+#note count must be <=15 to be able to read info from rss feed (only shows 15 latest)
 last_index = len(timeline)
 for x in range(0, len(timeline)):    
     if timeline[x].id == last_reply_id:
@@ -114,16 +146,14 @@ for i in range(len(timeline)-1, -1, -1):
             
             inpho_json = json.load(urllib.request.urlopen(url))
             
-            if 'url' not in inpho_json: #flag for missing page
-                print('page missing! couldn\'t find ' + title) #in future: post to text file? send alert?
+            if 'url' not in inpho_json:
+                print('page missing! couldn\'t find ' + title)
                 if not isMultiple(inpho_json):
                     print('!!!!!!!!!!!!!!!!!!!!!!!could not find!!!!!!!!!!!!!!!!!!!!!!!')
+                    sendEmail(title, 'Could not find page!')
             else:
                 if validUrl(inpho_json['url']):
                     response = createResponse(inpho_json['url'], title)
-
-    #                   time.sleep(60) #change later to be variable 60-600
+                    time.sleep(random.randint(60, 600))
                     api.update_status('@nesscoli ' + response, status.id)
                     print('tweet response: ' + response + ' to: ' + status.text)
-
-
