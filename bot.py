@@ -5,6 +5,7 @@ from builtins import str
 import tweepy, time, urllib.request, urllib.parse, urllib.error, json, requests
 from urllib.parse import quote
 from requests import get
+from bs4 import BeautifulSoup
 from keys import *
 
 #function used to add '+' in between words from the tweet
@@ -23,25 +24,13 @@ def buildURL (broken_tweet):
 
 #function used to check if the query returns more than one result
 #returns true if more than one result is found
-    #if true, also calls createResponse with the matching result, based on comparing
-    #label value from json with the title from the tweet
 #reutrns false otherwise
 def isMultiple (inpho_json):
     resDat = inpho_json.get('responseData')
     res = resDat.get('results')
     if len(res) > 0: #there was >1 result
+        print('multiple results for same sep_dir')
         return True; #notify of error
-##        found = False
-##        for entry in res:
-##            if entry.get('label') == title: #compare label with title
-##                url = entry.get('url')
-##                found = True
-##        if not found:
-##            print('Found multiple results, but none matched the title.')
-##        if validUrl(url):
-##            print('found >1 result and chose correct match')
-##            response = createResponse(url, title)
-##            return True;
     return False;
 
 #function to check url is valid for responding with
@@ -61,10 +50,23 @@ def validUrl (url):
     return True;
 
 #function that assembles the reply tweet from the url and title
+#retrieves update message from SEP RSS
 #returns response: the message to be tweeted back
 def createResponse (url, title):
+    rss = urllib.request.urlopen('https://plato.stanford.edu/rss/sep.xml')
+    soup = BeautifulSoup(rss, 'html.parser')
+    response = ''
+    for entry in soup.find_all('item'):
+        if str(entry.title) == '<title>' + title + '</title>':
+            start = str(entry.description).find('[') + 1
+            end = str(entry.description).find(']')
+            if start == -1 or end == -1:
+                print('rss not found') #notify of error
+            else:
+                response = str(entry.description)[start:end]
+            break;
     link = 'https://www.inphoproject.org' + url
-    response = 'InPhO - ' + title + ' - ' + link
+    response = response + '\nInPhO - ' + title + ' - ' + link
     return response;
 
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)

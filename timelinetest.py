@@ -6,6 +6,7 @@ from builtins import str
 import tweepy, urllib.request, urllib.parse, urllib.error, json, webbrowser, requests
 from urllib.parse import quote
 from requests import get
+from bs4 import BeautifulSoup
 from keys import *
 #from bot import buildURL, lookUp, createResponse #not working, need to fix
 
@@ -52,6 +53,7 @@ def validUrl (url):
         check = urllib.request.urlopen('https://www.inphoproject.org' + url)
     except urllib.error.HTTPError as e:
         print('500 error') #notify of error
+        f.write('500 error!')
         return False;
     if url.split('/')[1] == 'school_of_thought':
         f.write('found in school of thought')
@@ -61,8 +63,20 @@ def validUrl (url):
 #function that assembles the reply tweet from the url and title
 #returns response: the message to be tweeted back
 def createResponse (url, title):
+    rss = urllib.request.urlopen('https://plato.stanford.edu/rss/sep.xml')
+    soup = BeautifulSoup(rss, 'html.parser')
+    response = ''
+    for entry in soup.find_all('item'):
+        if str(entry.title) == '<title>' + title + '</title>':
+            start = str(entry.description).find('[') + 1
+            end = str(entry.description).find(']')
+            if start == -1 or end == -1:
+                print('rss error') #notify of error
+            else:
+                response = str(entry.description)[start:end]
+            break;
     link = 'https://www.inphoproject.org' + url
-    response = 'InPhO - ' + title + ' - ' + link
+    response = response + '\nInPhO - ' + title + ' - ' + link
     l.write(link)
     l.write('\n')
     print(response)
@@ -74,7 +88,7 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 userID = 12450802 #peoppenheimer's twitter ID
-timeline = api.user_timeline(user_id = userID, count = 15)
+timeline = api.user_timeline(user_id = userID, count = 100)
 i = 0
 f = open('results.txt', 'w')
 l = open('links.txt', 'w')
