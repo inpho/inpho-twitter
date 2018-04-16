@@ -30,25 +30,31 @@ def isMultiple (inpho_json):
     resDat = inpho_json.get('responseData')
     res = resDat.get('results')
     if len(res) > 0: #there was >1 result
-        found = False
-        for entry in res:
-            if entry.get('label') == title: #compare label with title
-                url = entry.get('url')
-                found = True
-        if not found:
-            print('Found multiple results, but none matched the title.')
-        if validUrl(url):
-            print('found >1 result and chose correct match')
-            response = createResponse(url, title)
-            return True;
+        return True; #notify of error
+##        found = False
+##        for entry in res:
+##            if entry.get('label') == title: #compare label with title
+##                url = entry.get('url')
+##                found = True
+##        if not found:
+##            print('Found multiple results, but none matched the title.')
+##        if validUrl(url):
+##            print('found >1 result and chose correct match')
+##            response = createResponse(url, title)
+##            return True;
     return False;
 
 #function to check url is valid for responding with
     #currently checks if article is from the "school of thought" ontology
+    #or if the link returns an error
 #returns false if it is,
 #returns true otherwise
 def validUrl (url):
-    #add code to check HTML for 500 error
+    try:
+        check = urllib.request.urlopen('https://www.inphoproject.org' + url)
+    except urllib.error.HTTPError as e:
+        print('500 error') #notify of error
+        return False;
     if url.split('/')[1] == 'school_of_thought':
         print(url + ' found in school of thought')
         return False;

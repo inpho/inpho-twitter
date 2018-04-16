@@ -32,20 +32,27 @@ def isMultiple (inpho_json):
     resDat = inpho_json.get('responseData')
     res = resDat.get('results')
     if len(res) > 0: #there was >1 result
-        for entry in res:
-            if entry.get('label') == title: #compare label with title
-                url = entry.get('url')
-        if validUrl(url):
-            f.write('found >1 result and chose the correct match')
-            response = createResponse(url, title)
-            return True;
+        return True; #notify of error
+##        for entry in res:
+##            if entry.get('label') == title: #compare label with title
+##                url = entry.get('url')
+##        if validUrl(url):
+##            f.write('found >1 result and chose the correct match')
+##            response = createResponse(url, title)
+##            return True;
     return False;
 
 #function to check url is valid for responding with
     #currently checks if article is from the "school of thought" ontology
+    #or if the link returns an error
 #returns false if it is,
 #returns true otherwise
 def validUrl (url):
+    try:
+        check = urllib.request.urlopen('https://www.inphoproject.org' + url)
+    except urllib.error.HTTPError as e:
+        print('500 error') #notify of error
+        return False;
     if url.split('/')[1] == 'school_of_thought':
         f.write('found in school of thought')
         return False;
@@ -55,7 +62,6 @@ def validUrl (url):
 #returns response: the message to be tweeted back
 def createResponse (url, title):
     link = 'https://www.inphoproject.org' + url
-#    webbrowser.open(link, new=2) #opens link in new tab of default browser
     response = 'InPhO - ' + title + ' - ' + link
     l.write(link)
     l.write('\n')
@@ -68,7 +74,7 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 userID = 12450802 #peoppenheimer's twitter ID
-timeline = api.user_timeline(user_id = userID, count = 50)
+timeline = api.user_timeline(user_id = userID, count = 15)
 i = 0
 f = open('results.txt', 'w')
 l = open('links.txt', 'w')
