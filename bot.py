@@ -69,11 +69,22 @@ def createResponse (url, title):
                 print('rss not found')
                 sendEmail(title, 'Could not find rss description.')
             else:
-                response = str(entry.description)[start:end]
+                response = shortenRSS(str(entry.description)[start:end])
             break;
     link = 'https://www.inphoproject.org' + url
-    response = response + '\nInPhO - ' + title + ' - ' + link
+    response = response + '\n\nInPhO - ' + title + ' - ' + link
     return response;
+
+#function that reads in the RSS description and removes side files
+#returns the same RSS description without files like *.html, etc.
+def shortenRSS(description):
+    start = description.find(': ') + 2
+    changed_files = description[start:].split(', ')
+    description = description[:start]
+    for file in changed_files:
+        if file.find('.') == -1:
+            description = description + file + ', '
+    return description[:-2]
 
 #function used to send an email in order to alert of errors found
 #err is the specified error message based on the issue
@@ -154,6 +165,6 @@ for i in range(len(timeline)-1, -1, -1):
             else:
                 if validUrl(inpho_json['url']):
                     response = createResponse(inpho_json['url'], title)
-                    time.sleep(random.randint(60, 600))
+#                    time.sleep(random.randint(60, 600))
                     api.update_status('@nesscoli ' + response, status.id)
                     print('tweet response: ' + response + ' to: ' + status.text)

@@ -78,14 +78,24 @@ def createResponse (url, title):
                 sendEmail(title, 'Could not find rss description.')
                 f.write('no rss info')
             else:
-                response = str(entry.description)[start:end]
+                response = shortenRSS(str(entry.description)[start:end])
             break;
     link = 'https://www.inphoproject.org' + url
-    response = response + '\nInPhO - ' + title + ' - ' + link
+    response = response + '\n\nInPhO - ' + title + ' - ' + link
     l.write(link)
     l.write('\n')
     print(response)
     return response;
+
+def shortenRSS(description):
+    start = description.find(': ') + 2
+    changed_files = description[start:].split(', ')
+    description = description[:start]
+    for file in changed_files:
+        if file.find('.') == -1:
+            description = description + file + ', '
+    return description[:-2]
+    
 
 def sendEmail(title, err):
     TO = 'vmc12@pitt.edu'
@@ -114,7 +124,7 @@ server.ehlo()
 server.login(gmail_sender, gmail_passwd)
 
 userID = 12450802 #peoppenheimer's twitter ID
-timeline = api.user_timeline(user_id = userID, count = 15)
+timeline = api.user_timeline(user_id = userID, count = 5)
 i = 0
 f = open('results.txt', 'w')
 l = open('links.txt', 'w')
