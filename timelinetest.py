@@ -81,7 +81,11 @@ def createResponse (url, title):
                 response = shortenRSS(str(entry.description)[start:end])
             break;
     link = 'https://www.inphoproject.org' + url
-    response = response + '\n\nInPhO - ' + title + ' - ' + link
+    if url.split('/')[1] == 'thinker':
+        emoji = u'\U0001F9E0' #brain emoji
+    elif url.split('/')[1] == 'idea':
+        emoji = u'\U0001F4A1' #lightbulb emoji
+    response = response + '\n\nInPhO: ' + title + ' ' + emoji + ' ' + link
     l.write(link)
     l.write('\n')
     print(response)
@@ -107,7 +111,7 @@ def sendEmail(title, err):
                     '', TEXT])
 
     try:
-        server.sendmail(gmail_sender, [TO], BODY)
+ #       server.sendmail(gmail_sender, [TO], BODY)
         print ('email sent')
     except:
         print ('error sending mail')

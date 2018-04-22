@@ -72,7 +72,11 @@ def createResponse (url, title):
                 response = shortenRSS(str(entry.description)[start:end])
             break;
     link = 'https://www.inphoproject.org' + url
-    response = response + '\n\nInPhO - ' + title + ' - ' + link
+    if url.split('/')[1] == 'thinker':
+        emoji = u'\U0001F9E0' #brain emoji
+    elif url.split('/')[1] == 'idea':
+        emoji = u'\U0001F4A1' #lightbulb emoji
+    response = response + '\n\nInPhO: ' + title + ' ' + emoji + ' ' + link
     return response;
 
 #function that reads in the RSS description and removes side files
@@ -118,7 +122,7 @@ server.login(gmail_sender, gmail_passwd)
 userID = 975141243348049921 #userID of dummy test account
 myID = 974652683788455936
 last_tweet = api.user_timeline(user_id = myID, count = 1)[0] #last status sent by the bot
-print('last tweet was: ' + last_tweet.text)
+print('last tweet was: ' + quote(last_tweet.text))
 last_reply_id = last_tweet.in_reply_to_status_id #id of the last status the bot replied to
 print('with id of ' + str(last_reply_id))
 timeline = api.user_timeline(user_id = userID, count = 5) #change 5 based on frequency of running bot
@@ -167,4 +171,4 @@ for i in range(len(timeline)-1, -1, -1):
                     response = createResponse(inpho_json['url'], title)
 #                    time.sleep(random.randint(60, 600))
                     api.update_status('@nesscoli ' + response, status.id)
-                    print('tweet response: ' + response + ' to: ' + status.text)
+                    print('tweet response: ' + quote(response) + ' to: ' + status.text)
