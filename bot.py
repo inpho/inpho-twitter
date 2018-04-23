@@ -51,6 +51,12 @@ def validUrl (url):
     if url.split('/')[1] == 'school_of_thought':
         print(url + ' found in school of thought')
         return False;
+    elif url.split('/')[1] == 'work':
+        print(url + ' found in work')
+        return False;
+    elif url.split('/')[1] == 'journal':
+        print(url + ' found in journal')
+        return False;
     return True;
 
 #function that assembles the reply tweet from the url and title
