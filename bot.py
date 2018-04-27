@@ -91,10 +91,17 @@ def shortenRSS(description):
     start = description.find(': ') + 2
     changed_files = description[start:].split(', ')
     description = description[:start]
+    foundSupp = False
     for file in changed_files:
         if file.find('.') == -1:
             description = description + file + ', '
-    return description[:-2]
+        else:
+            foundSupp = True
+    if foundSupp:
+        description = description + 'supplemental files'
+        return description
+    else:
+        return description[-2]
 
 #function used to send an email in order to alert of errors found
 #err is the specified error message based on the issue
@@ -125,7 +132,7 @@ server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
 server.ehlo()
 server.login(gmail_sender, gmail_passwd)
 
-userID = 975141243348049921 #userID of dummy test account
+userID = 12450802 #975141243348049921 #userID of dummy test account
 myID = 974652683788455936
 last_tweet = api.user_timeline(user_id = myID, count = 1)[0] #last status sent by the bot
 print('last tweet was: ' + quote(last_tweet.text))
@@ -175,6 +182,6 @@ for i in range(len(timeline)-1, -1, -1):
             else:
                 if validUrl(inpho_json['url']):
                     response = createResponse(inpho_json['url'], title)
-#                    time.sleep(random.randint(60, 600))
-                    api.update_status('@nesscoli ' + response, status.id)
+                    time.sleep(random.randint(60, 120))
+                    api.update_status('@peoppenheimer ' + response, status.id)
                     print('tweet response: ' + quote(response) + ' to: ' + status.text)

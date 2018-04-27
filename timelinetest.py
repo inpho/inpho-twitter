@@ -85,20 +85,28 @@ def createResponse (url, title):
         emoji = u'\U0001F9E0' #brain emoji
     elif url.split('/')[1] == 'idea':
         emoji = u'\U0001F4A1' #lightbulb emoji
+    emoji = "emoji"
     response = response + '\n\nInPhO: ' + title + ' ' + emoji + ' ' + link
     l.write(link)
     l.write('\n')
-    print(response)
+    #print(response)
     return response;
 
 def shortenRSS(description):
     start = description.find(': ') + 2
     changed_files = description[start:].split(', ')
     description = description[:start]
+    foundSupp = False
     for file in changed_files:
         if file.find('.') == -1:
             description = description + file + ', '
-    return description[:-2]
+        else:
+            foundSupp = True
+    if foundSupp:
+        description = description + 'supplemental files'
+        return description
+    else:
+        return description[:-2]
     
 
 def sendEmail(title, err):
@@ -128,7 +136,7 @@ server.ehlo()
 server.login(gmail_sender, gmail_passwd)
 
 userID = 12450802 #peoppenheimer's twitter ID
-timeline = api.user_timeline(user_id = userID, count = 5)
+timeline = api.user_timeline(user_id = userID, count = 10)
 i = 0
 f = open('results.txt', 'w')
 l = open('links.txt', 'w')
@@ -166,6 +174,7 @@ for status in timeline:
         if validUrl(inpho_json['url']):
             f.write('found on first try')
             response = createResponse(inpho_json['url'], title)
+            print(response + '\n')
 
 f.close()
 l.close()
