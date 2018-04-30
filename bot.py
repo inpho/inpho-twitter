@@ -101,7 +101,7 @@ def shortenRSS(description):
         description = description + 'supplemental files'
         return description
     else:
-        return description[-2]
+        return description[:-2]
 
 #function used to send an email in order to alert of errors found
 #err is the specified error message based on the issue
