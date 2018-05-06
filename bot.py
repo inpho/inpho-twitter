@@ -88,34 +88,38 @@ def createResponse (url, title):
 #function that reads in the RSS description and removes side files
 #returns the same RSS description without files like *.html, etc.
 def shortenRSS(description):
-    start = description.find(': ') + 2
-    changed_files = description[start:].split(', ')
-    description = description[:start]
-    foundSupp = False
-    for file in changed_files:
-        if file.find('.') == -1:
-            description = description + file + ', '
-        else:
-            foundSupp = True
-    if foundSupp:
-        description = description + 'supplemental files'
+    start = description.find(': ')
+    if start == -1: #no files found
         return description
     else:
-        return description[:-2]
+        start = start + 2
+        changed_files = description[start:].split(', ')
+        description = description[:start]
+        foundSupp = False
+        for file in changed_files:
+            if file.find('.') == -1:
+                description = description + file + ', '
+            else:
+                foundSupp = True
+        if foundSupp:
+            description = description + 'supplemental files'
+            return description
+        else:
+            return description[:-2]
 
 #function used to send an email in order to alert of errors found
 #err is the specified error message based on the issue
 #returns nothing, either sends email or doesn't.
 def sendEmail(title, err):
-    TO = 'vmc12@pitt.edu'
-    SUBJECT = 'InPhO Bot Error Alert'
-    TEXT = 'Error detected by bot for entry ' + title + ':\n' + err
-    BODY = '\r\n'.join(['To: %s' % TO,
-                    'From: %s' % gmail_sender,
-                    'Subject: %s' % SUBJECT,
-                    '', TEXT])
+##    TO = 'vmc12@pitt.edu'
+##    SUBJECT = 'InPhO Bot Error Alert'
+##    TEXT = 'Error detected by bot for entry ' + title + ':\n' + err
+##    BODY = '\r\n'.join(['To: %s' % TO,
+##                    'From: %s' % gmail_sender,
+##                    'Subject: %s' % SUBJECT,
+##                    '', TEXT])
     try:
-        server.sendmail(gmail_sender, [TO], BODY)
+ #       server.sendmail(gmail_sender, [TO], BODY)
         print ('email sent')
     except:
         print ('error sending mail')
@@ -126,18 +130,16 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 #authentication for gmail access
-gmail_sender = 'vanessa.colihan@gmail.com' #create email for bot later
-gmail_passwd = PASSWD
-server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-server.ehlo()
-server.login(gmail_sender, gmail_passwd)
+##gmail_sender = 'vanessa.colihan@gmail.com' #create email for bot later
+##gmail_passwd = PASSWD
+##server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+##server.ehlo()
+##server.login(gmail_sender, gmail_passwd)
 
 userID = 12450802 #975141243348049921 #userID of dummy test account
 myID = 974652683788455936
 last_tweet = api.user_timeline(user_id = myID, count = 1)[0] #last status sent by the bot
-print('last tweet was: ' + quote(last_tweet.text))
 last_reply_id = last_tweet.in_reply_to_status_id #id of the last status the bot replied to
-print('with id of ' + str(last_reply_id))
 timeline = api.user_timeline(user_id = userID, count = 5) #change 5 based on frequency of running bot
 #note count must be <=15 to be able to read info from rss feed (only shows 15 latest)
 last_index = len(timeline)
@@ -151,7 +153,7 @@ timeline = timeline[:last_index] #truncates tweets bot has already replied to
 for i in range(len(timeline)-1, -1, -1):
     status = timeline[i]
     #first check to see if bot already replied, if it has, don't continue reading timeline
-    print(status.text)
+
     if status.id == last_reply_id:
         print('already responded to ' + status.text)
         break;
