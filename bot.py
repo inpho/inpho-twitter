@@ -8,6 +8,15 @@ from requests import get
 from bs4 import BeautifulSoup
 from keys import *
 
+#function used to find the most recent reply to a peoppenheimer tweet
+#returns id of peoppenheimers tweet that was replied to
+#returns -1 is not found in myTimeline given to function
+def getLastReply(myTimeline):
+    for tweet in myTimeline:
+        if tweet.in_reply_to_status_id != None:
+            return tweet.in_reply_to_status_id
+    return -1
+
 #function used to add '+' in between words from the tweet
 #returns title: the formal title of the article
 #returns url: the title but with '+' in between
@@ -138,8 +147,8 @@ api = tweepy.API(auth)
 
 userID = 12450802 #975141243348049921 #userID of dummy test account
 myID = 974652683788455936
-last_tweet = api.user_timeline(user_id = myID, count = 1)[0] #last status sent by the bot
-last_reply_id = last_tweet.in_reply_to_status_id #id of the last status the bot replied to
+myTimeline = api.user_timeline(user_id = myID, count = 5) #5 to match max response rate
+last_reply_id = getLastReply(myTimeline)
 timeline = api.user_timeline(user_id = userID, count = 5) #change 5 based on frequency of running bot
 #note count must be <=15 to be able to read info from rss feed (only shows 15 latest)
 last_index = len(timeline)
@@ -147,8 +156,8 @@ for x in range(0, len(timeline)):
     if timeline[x].id == last_reply_id:
         last_index = x
 timeline = timeline[:last_index] #truncates tweets bot has already replied to
-
 #timeline returns count number of tweets from specified user, in order of most recent to least recent
+
 #reverse the order of timeline so that they are replied to in the opposite order
 for i in range(len(timeline)-1, -1, -1):
     status = timeline[i]
