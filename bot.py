@@ -88,7 +88,7 @@ def createResponse (url, title):
         emoji = u'\U0001F9E0' #brain emoji
     elif url.split('/')[1] == 'idea':
         emoji = u'\U0001F4A1' #lightbulb emoji
-    response = 'SEP\'s \"' + title + '\" is a ' + response + '\n\nCheck it out on InPhO ' + 'emoji' + ' ' + link
+    response = 'SEP\'s \"' + title + '\" is a ' + response + '\n\nCheck it out on InPhO ' + emoji + ' ' + link
     return response;
 
 #function that reads in the RSS description and removes side files
@@ -192,4 +192,4 @@ else:
                         if response != '':
                             time.sleep(random.randint(60, 120))
                             api.update_status('@peoppenheimer ' + response, status.id)
-                            print('tweet response: ' + response + ' to: ' + status.text)
+#                            print('tweet response: ' + response + ' to: ' + status.text)

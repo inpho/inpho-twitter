@@ -73,7 +73,7 @@ def createResponse (sep_url, url, title):
     elif url.split('/')[1] == 'idea':
         emoji = u'\U0001F4A1' #lightbulb emoji
         
-    response = 'This SEP entry was ' + pub + '.\n\nCheck \"' + title + '\" out on InPhO ' + 'emoji' + ' ' + link
+    response = 'This SEP entry was ' + pub + '.\n\nCheck \"' + title + '\" out on InPhO ' + emoji + ' ' + link
     return response;
 
 #function used to send an email in order to alert of errors found
@@ -151,4 +151,4 @@ else:
                         response = createResponse(sep_url, inpho_json['url'], title)
                         time.sleep(random.randint(60, 120))
                         api.update_status('@dailySEP ' + response, status.id)
-                        print('tweet response: ' + response + ' to: ' + status.full_text)
+#                        print('tweet response: ' + response + ' to: ' + status.full_text)
