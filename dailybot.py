@@ -12,10 +12,17 @@ from keys import *
 #function used to find the most recent reply to a dailysep tweet
 #returns id of dailyseps tweet that was replied to
 #returns -1 is not found in myTimeline given to function
-def getLastReply(myTimeline, userID):
-    for tweet in myTimeline:
-        if tweet.in_reply_to_user_id == userID:
-            return tweet.in_reply_to_status_id
+def getLastReply(myID, myCount, userID):
+    getCount = 5
+    start = 0
+    while getCount < myCount:
+        myTimeline = api.user_timeline(user_id = myID, count = getCount)
+        for i in range(start, len(myTimeline)):
+            tweet = myTimeline[i]
+            if tweet.in_reply_to_user_id == userID:
+                return tweet.in_reply_to_status_id
+        start = getCount
+        getCount = getCount * 2
     return -1
 
 #function used to check if the query returns more than one result
@@ -67,13 +74,57 @@ def createResponse (sep_url, url, title):
         sendEmail(title, 'Could not find pub info')
     pub = str(pub)[start+4:end]
 
+    author = str(soup.find(id="article-copyright"))
+    start = author.find('<br/>')
+    author = author[start+6:] #+6 to ignore '<br/>' and '\n'
+    if author[0] == '<': #if author has a link, truncate
+        start = author.find('>')
+        author = author[start+1:] #+1 to ignore '>'
+    authors = [author] #create list
+    start = author.find('<br/>') #look for next author
+    i = 1
+
+    while start != -1:
+        authors.append(authors[i-1][start+6:])
+
+        last = authors[i-1].find('\n') #truncate email, newline from previous
+        if last != -1:
+            authors[i-1] = authors[i-1][:last]
+        last = authors[i-1].find('<') #truncate link from previous
+        if last != -1:
+            authors[i-1] = authors[i-1][:last]
+
+        if authors[i][0] == '<': #current author has a link
+            start = authors[i].find('>')
+            authors[i] = authors[i][start+1:]
+
+        start = authors[i].find('<br/>') #look for next author
+        i = i + 1
+        
+    last = authors[i-1].find('<')
+    if last != -1:
+        authors[i-1] = authors[i-1][:last]
+    last = authors[i-1].find('\n')
+    if last != -1:
+        authors[i-1] = authors[i-1][:last]
+
+    if len(authors) == 1:
+        authLine = authors[0]
+    elif len(authors) == 2:
+        authLine = authors[0] + ' and ' + authors[1]
+    else:
+        authLine = authors[0] + ', '
+        for i in range(1,len(authors)-1):
+            authLine = authLine + authors[i] + ', '
+        authLine = authLine + 'and ' + authors[len(authors)-1]
+
     link = 'https://www.inphoproject.org' + url
     if url.split('/')[1] == 'thinker':
         emoji = u'\U0001F9E0' #brain emoji
     elif url.split('/')[1] == 'idea':
         emoji = u'\U0001F4A1' #lightbulb emoji
         
-    response = 'This SEP entry was ' + pub + '.\n\nCheck \"' + title + '\" out on InPhO ' + emoji + ' ' + link
+    response = 'This SEP entry, written by ' + authLine + ', was ' + pub + '.\n\nCheck \"' + title + '\" out on InPhO ' + emoji + ' ' + link
     return response;
 
 #function used to send an email in order to alert of errors found
@@ -107,13 +158,13 @@ api = tweepy.API(auth)
 
 userID = 839300259838902272 #userID of @dailySEP
 myID = 974652683788455936
-myTimeline = api.user_timeline(user_id = myID, count = 5) #5 to match max response rate
-last_reply_id = getLastReply(myTimeline, userID)
+myCount = api.get_user(myID).statuses_count
+last_reply_id = getLastReply(myID, myCount, userID)
 
-if last_reply_id != -1: #change to == after running once
+if last_reply_id == -1: #change to == after running once
     sendEmail('Initializing error', 'cannot find last dailySEP reply')
 else:
-    timeline = api.user_timeline(user_id = userID, count = 5, tweet_mode='extended') #change 5 based on frequency of running bot
+    timeline = api.user_timeline(user_id = userID, count = 5, tweet_mode='extended') #change count based on frequency of running bot
     last_index = len(timeline)
     for x in range(0, len(timeline)):    
         if timeline[x].id == last_reply_id:
@@ -125,7 +176,7 @@ else:
     for i in range(len(timeline)-1, -1, -1):
 
         status = timeline[i]
-
+    
         if status.id == last_reply_id:
             break;
         else:
@@ -151,4 +202,4 @@ else:
                         response = createResponse(sep_url, inpho_json['url'], title)
                         time.sleep(random.randint(60, 120))
                         api.update_status('@dailySEP ' + response, status.id)
-#                        print('tweet response: ' + response + ' to: ' + status.full_text)
+#                       print(response)

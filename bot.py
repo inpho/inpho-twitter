@@ -12,10 +12,17 @@ from keys import *
 #function used to find the most recent reply to a peoppenheimer tweet
 #returns id of peoppenheimers tweet that was replied to
 #returns -1 is not found in myTimeline given to function
-def getLastReply(myTimeline, userID):
-    for tweet in myTimeline:
-        if tweet.in_reply_to_user_id == userID:
-            return tweet.in_reply_to_status_id
+def getLastReply(myID, myCount, userID):
+    getCount = 5
+    start = 0
+    while getCount < myCount:
+        myTimeline = api.user_timeline(user_id = myID, count = getCount)
+        for i in range(start, len(myTimeline)):
+            tweet = myTimeline[i]
+            if tweet.in_reply_to_user_id == userID:
+                return tweet.in_reply_to_status_id
+        start = getCount
+        getCount = getCount * 2
     return -1
 
 #function used to add ' ' in between words from the tweet
@@ -144,8 +151,8 @@ api = tweepy.API(auth)
 
 userID = 12450802 #975141243348049921 #userID of dummy test account
 myID = 974652683788455936
-myTimeline = api.user_timeline(user_id = myID, count = 5) #5 to match max response rate
-last_reply_id = getLastReply(myTimeline, userID)
+myCount = api.get_user(myID).statuses_count
+last_reply_id = getLastReply(myID, myCount, userID)
 
 if last_reply_id == -1:
     sendEmail('Initializing error', 'cannot find last peoppenheimer reply')
