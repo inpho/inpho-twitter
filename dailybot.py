@@ -12,15 +12,17 @@ from keys import *
 #function used to find the most recent reply to a dailysep tweet
 #returns id of dailyseps tweet that was replied to
 #returns -1 is not found in myTimeline given to function
-def getLastReply(myID, myCount, userID):
+def getLastReply(myID, myCount, user):
     getCount = 5
     start = 0
     while getCount < myCount:
         myTimeline = api.user_timeline(user_id = myID, count = getCount)
         for i in range(start, len(myTimeline)):
             tweet = myTimeline[i]
-            if tweet.in_reply_to_user_id == userID:
-                return tweet.in_reply_to_status_id
+            rt_link = tweet.entities['urls'][0]['expanded_url'].split('/')
+            tweet_user = rt_link[3]
+            if tweet_user == user:
+                return rt_link[len(rt_link)-1] #status id of last responded to tweet
         start = getCount
         getCount = getCount * 2
     return -1
@@ -161,9 +163,10 @@ api = tweepy.API(auth)
 ##server.login(gmail_sender, gmail_passwd)
 
 userID = 839300259838902272 #userID of @dailySEP
+user = 'dailySEP'
 myID = 974652683788455936
 myCount = api.get_user(myID).statuses_count
-last_reply_id = getLastReply(myID, myCount, userID)
+last_reply_id = getLastReply(myID, myCount, user)
 
 if last_reply_id == -1: #change to == after running once
     sendEmail('Initializing error', 'cannot find last dailySEP reply')

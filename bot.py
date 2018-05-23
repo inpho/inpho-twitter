@@ -12,15 +12,17 @@ from keys import *
 #function used to find the most recent reply to a peoppenheimer tweet
 #returns id of peoppenheimers tweet that was replied to
 #returns -1 is not found in myTimeline given to function
-def getLastReply(myID, myCount, userID):
+def getLastReply(myID, myCount, user):
     getCount = 5
     start = 0
     while getCount < myCount:
         myTimeline = api.user_timeline(user_id = myID, count = getCount)
         for i in range(start, len(myTimeline)):
             tweet = myTimeline[i]
-            if tweet.in_reply_to_user_id == userID:
-                return tweet.in_reply_to_status_id
+            rt_link = tweet.entities['urls'][0]['expanded_url'].split('/')
+            tweet_user = rt_link[3]
+            if tweet_user == user:
+                return rt_link[len(rt_link)-1] #status id of last responded to tweet
         start = getCount
         getCount = getCount * 2
     return -1
@@ -153,13 +155,14 @@ api = tweepy.API(auth)
 ##server.ehlo()
 ##server.login(gmail_sender, gmail_passwd)
 
-userID = 12450802 #975141243348049921 #userID of dummy test account
+userID = 12450802 #userID of peoppenheimer
+user = 'peoppenheimer'
 myID = 974652683788455936
 myCount = api.get_user(myID).statuses_count
-last_reply_id = 1#getLastReply(myID, myCount, userID)
+last_reply_id = getLastReply(myID, myCount, user)
 
 if last_reply_id == -1:
-    sendEmail('Initializing error', 'cannot find last peoppenheimer reply')
+    sendEmail('Initializing error: ', 'cannot find last peoppenheimer reply')
 else:
     timeline = api.user_timeline(user_id = userID, count = 5) #change 5 based on frequency of running bot
     #note count must be <=15 to be able to read info from rss feed (only shows 15 latest)
@@ -204,3 +207,4 @@ else:
                             time.sleep(random.randint(60, 120))
 #                           api.update_status('@peoppenheimer ' + response, status.id)
                             api.update_status(response + ' https://twitter.com/peoppenheimer/status/' + status.id_str)
+
