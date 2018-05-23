@@ -123,6 +123,10 @@ def createResponse (sep_url, url, title):
         emoji = u'\U0001F9E0' #brain emoji
     elif url.split('/')[1] == 'idea':
         emoji = u'\U0001F4A1' #lightbulb emoji
+    elif url.split('/')[1] == 'taxonomy':
+        emoji = u'\U0001F5C2' #files emoji
+    else:
+        emoji = u'\U0001F4AD' #default thought bubble emoji
         
     response = 'This SEP entry, written by ' + authLine + ', was ' + pub + '.\n\nCheck \"' + title + '\" out on InPhO ' + emoji + ' ' + link
     return response;

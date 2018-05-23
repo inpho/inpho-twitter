@@ -95,6 +95,10 @@ def createResponse (url, title):
         emoji = u'\U0001F9E0' #brain emoji
     elif url.split('/')[1] == 'idea':
         emoji = u'\U0001F4A1' #lightbulb emoji
+    elif url.split('/')[1] == 'taxonomy':
+        emoji = u'\U0001F5C2' #files emoji
+    else:
+        emoji = u'\U0001F4AD' #default thought bubble emoji
     response = 'SEP\'s \"' + title + '\" is a ' + response + '\n\nCheck it out on InPhO ' + emoji + ' ' + link
     return response;
 
