@@ -152,7 +152,7 @@ api = tweepy.API(auth)
 userID = 12450802 #975141243348049921 #userID of dummy test account
 myID = 974652683788455936
 myCount = api.get_user(myID).statuses_count
-last_reply_id = getLastReply(myID, myCount, userID)
+last_reply_id = 1#getLastReply(myID, myCount, userID)
 
 if last_reply_id == -1:
     sendEmail('Initializing error', 'cannot find last peoppenheimer reply')
@@ -198,5 +198,5 @@ else:
                         response = createResponse(inpho_json['url'], title)
                         if response != '':
                             time.sleep(random.randint(60, 120))
-                            api.update_status('@peoppenheimer ' + response, status.id)
-#                            print('tweet response: ' + response + ' to: ' + status.text)
+#                           api.update_status('@peoppenheimer ' + response, status.id)
+                            api.update_status(response + ' https://twitter.com/peoppenheimer/status/' + status.id_str)

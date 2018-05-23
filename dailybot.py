@@ -201,5 +201,6 @@ else:
                     if validUrl(inpho_json['url']):
                         response = createResponse(sep_url, inpho_json['url'], title)
                         time.sleep(random.randint(60, 120))
-                        api.update_status('@dailySEP ' + response, status.id)
-#                       print(response)
+#                       api.update_status('@dailySEP ' + response, status.id)
+                        api.update_status(response + ' https://twitter.com/dailySEP/status/' + status.id_str)
+
