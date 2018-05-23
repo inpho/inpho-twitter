@@ -12,17 +12,15 @@ from keys import *
 #function used to find the most recent reply to a peoppenheimer tweet
 #returns id of peoppenheimers tweet that was replied to
 #returns -1 is not found in myTimeline given to function
-def getLastReply(myID, myCount, user):
+def getLastReply(myID, myCount, userID):
     getCount = 5
     start = 0
     while getCount < myCount:
         myTimeline = api.user_timeline(user_id = myID, count = getCount)
         for i in range(start, len(myTimeline)):
             tweet = myTimeline[i]
-            rt_link = tweet.entities['urls'][0]['expanded_url'].split('/')
-            tweet_user = rt_link[3]
-            if tweet_user == user:
-                return rt_link[len(rt_link)-1] #status id of last responded to tweet
+            if tweet.in_reply_to_user_id == userID:
+                return tweet.in_reply_to_status_id
         start = getCount
         getCount = getCount * 2
     return -1
@@ -101,7 +99,7 @@ def createResponse (url, title):
         emoji = u'\U0001F5C2' #files emoji
     else:
         emoji = u'\U0001F4AD' #default thought bubble emoji
-    response = 'SEP\'s \"' + title + '\" is a ' + response + '\n\nCheck it out on InPhO ' + emoji + ' ' + link
+    response = 'SEP\'s \"' + title + '\" is a ' + response + '\n\nCheck it out on InPhO ' + 'emoji' + ' ' + link
     return response;
 
 #function that reads in the RSS description and removes side files
@@ -156,10 +154,9 @@ api = tweepy.API(auth)
 ##server.login(gmail_sender, gmail_passwd)
 
 userID = 12450802 #userID of peoppenheimer
-user = 'peoppenheimer'
 myID = 974652683788455936
 myCount = api.get_user(myID).statuses_count
-last_reply_id = getLastReply(myID, myCount, user)
+last_reply_id = 1#getLastReply(myID, myCount, userID)
 
 if last_reply_id == -1:
     sendEmail('Initializing error: ', 'cannot find last peoppenheimer reply')
@@ -205,6 +202,4 @@ else:
                         response = createResponse(inpho_json['url'], title)
                         if response != '':
                             time.sleep(random.randint(60, 120))
-#                           api.update_status('@peoppenheimer ' + response, status.id)
-                            api.update_status(response + ' https://twitter.com/peoppenheimer/status/' + status.id_str)
-
+                            api.update_status('@peoppenheimer ' + response + ' https://twitter.com/peoppenheimer/status/' + status.id_str, status.id)
