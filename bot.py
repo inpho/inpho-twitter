@@ -99,7 +99,7 @@ def createResponse (url, title):
         emoji = u'\U0001F5C2' #files emoji
     else:
         emoji = u'\U0001F4AD' #default thought bubble emoji
-    response = 'SEP\'s \"' + title + '\" is a ' + response + '\n\nCheck it out on InPhO ' + 'emoji' + ' ' + link
+    response = 'SEP\'s \"' + title + '\" is a ' + response + '\n\nCheck it out on InPhO ' + emoji + ' ' + link
     return response;
 
 #function that reads in the RSS description and removes side files
@@ -128,15 +128,15 @@ def shortenRSS(description):
 #err is the specified error message based on the issue
 #returns nothing, either sends email or doesn't.
 def sendEmail(title, err):
-##    TO = 'vmc12@pitt.edu'
-##    SUBJECT = 'InPhO Bot Error Alert'
-##    TEXT = 'Error detected by bot for entry ' + title + ':\n' + err
-##    BODY = '\r\n'.join(['To: %s' % TO,
-##                    'From: %s' % gmail_sender,
-##                    'Subject: %s' % SUBJECT,
-##                    '', TEXT])
+    TO = 'vmc12@pitt.edu'
+    SUBJECT = 'InPhO Bot Error Alert'
+    TEXT = 'Error detected by bot for entry ' + title + ':\n' + err
+    BODY = '\r\n'.join(['To: %s' % TO,
+                    'From: %s' % gmail_sender,
+                    'Subject: %s' % SUBJECT,
+                    '', TEXT])
     try:
- #       server.sendmail(gmail_sender, [TO], BODY)
+        server.sendmail(gmail_sender, [TO], BODY)
         print('email sent: ' + title + err)
     except:
         print('error sending mail')
@@ -147,16 +147,16 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
 api = tweepy.API(auth)
 
 #authentication for gmail access
-##gmail_sender = 'vanessa.colihan@gmail.com' #create email for bot later
-##gmail_passwd = PASSWD
-##server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-##server.ehlo()
-##server.login(gmail_sender, gmail_passwd)
+gmail_sender = 'inphotwitterbot@gmail.com' #create email for bot later
+gmail_passwd = PASSWD
+server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+server.ehlo()
+server.login(gmail_sender, gmail_passwd)
 
 userID = 12450802 #userID of peoppenheimer
 myID = 974652683788455936
 myCount = api.get_user(myID).statuses_count
-last_reply_id = 1#getLastReply(myID, myCount, userID)
+last_reply_id = getLastReply(myID, myCount, userID)
 
 if last_reply_id == -1:
     sendEmail('Initializing error: ', 'cannot find last peoppenheimer reply')
