@@ -36,6 +36,20 @@ def sendEmail(errTime, desc):
     except:
         print('error sending mail')
 
+#function used to parse tweets to find corresponding response
+#returns string with link to status, or empty string if error
+def getLink(byline, myID):
+    title = byline[:byline.find(' by')]
+    myTimeline = api.user_timeline(user_id = myID, count = 30)
+    for status in myTimeline:
+        if status.in_reply_to_user_id == 12450802: #peoppenheimer ID
+            curr = status.text[22:]
+            if title == curr[:curr.find('\" ')]:
+                return 'https://twitter.com/peoppenheimer/status/' + status.id_str
+            
+    sendEmail(byline, 'Could not find corresponding status link')
+    return ''
+    
 #authentication for twitter bot access
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
@@ -88,7 +102,7 @@ try:
         revised = revised_auth
 
     star = u'\U00002728' + ' '
-    memo = u'\U0001F4DD' + ' '	
+    memo = u'\U0001F4DD' + ' '
         
     if len(added) > 0:
         if len(added) == 1:
@@ -111,7 +125,13 @@ try:
             tweet = tweet + closing
         elif len(tweet) + len(shortclose) <= 280:
             tweet = tweet + shortclose
+            
+        if len(added) + len(revised) == 1:
+            if len(added) == 1:
+                tweet = tweet + getLink(added[0], myID)
+            else:
+                tweet = tweet + getLink(revised[0], myID)
         api.update_status(tweet)
         
 except Exception as e:
-    sendEmail(date.strftime(yesterday, '%a %b %d'), str(e))
+    sendEmail(date.strftime(yesterday, '%a %b %d '), str(e))
