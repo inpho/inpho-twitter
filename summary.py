@@ -22,17 +22,17 @@ def listEntries(entries):
 #function used to send an email in order to alert of errors found
 #err is the specified error message based on the issue
 #returns nothing, either sends email or doesn't.
-def sendEmail(name, errTime):
+def sendEmail(errTime, desc):
     TO = 'vmc12@pitt.edu'
     SUBJECT = 'InPhO Bot Error Alert'
-    TEXT = 'Error detected by bot for birthday tweet of ' + name + ' on ' + errTime
+    TEXT = 'Error detected by bot for summary tweet for ' + errTime + ': ' + desc
     BODY = '\r\n'.join(['To: %s' % TO,
                     'From: %s' % gmail_sender,
                     'Subject: %s' % SUBJECT,
                     '', TEXT])
     try:
         server.sendmail(gmail_sender, [TO], BODY)
-        print('email sent: ' + name + errTime)
+        print('email sent: ' + errTime + desc)
     except:
         print('error sending mail')
 
@@ -49,65 +49,69 @@ server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
 server.ehlo()
 server.login(gmail_sender, gmail_passwd)
 
-for x in range(1, 30): #remove loop when done testing
+try:
+    yesterday = date.today() - timedelta(1)
+    revised_auth = []
+    revised = []
+    added = []
 
-    try:
-        yesterday = date.today() - timedelta(x)
-        revised_auth = []
-        revised = []
-        added = []
+    rss = urllib.request.urlopen('https://plato.stanford.edu/rss/sep.xml')
+    soup = BeautifulSoup(rss, 'html.parser')
+    response = ''
+    for entry in soup.find_all('item'):
+        pubdate = str(entry.pubdate)
+        start = pubdate.find('<pubdate>') + 9
+        pubdate = pubdate[start:-25]
+        pubdate = datetime.strptime(pubdate, '%a, %d %b %Y').date()
+        if pubdate == yesterday:
+            desc = str(entry.description)
+            start = desc.find('[')
+            desc = desc[start+1:]
 
-        rss = urllib.request.urlopen('https://plato.stanford.edu/rss/sep.xml')
-        soup = BeautifulSoup(rss, 'html.parser')
-        response = ''
-        for entry in soup.find_all('item'):
-            pubdate = str(entry.pubdate)
-            start = pubdate.find('<pubdate>') + 9
-            pubdate = pubdate[start:-25]
-            pubdate = datetime.strptime(pubdate, '%a, %d %b %Y').date()
-            if pubdate == yesterday:
-                desc = str(entry.description)
-                start = desc.find('[')
-                desc = desc[start+1:]
-
-                start = desc.find(' by')
-                end = desc.find(' on')
-                byline = desc[start:end]
-                
-                if desc.split(' ')[0] == 'Revised':
-                    revised.append(str(entry.title)[7:-8] )
-                    revised_auth.append(str(entry.title)[7:-8] + byline)
-                elif desc.split(' ')[0] == 'New':
-                    added.append(str(entry.title)[7:-8] + byline)
-                else:
-                    sendEmail(date.strftime(yesterday, '%a %b %d'), 'Error reading RSS')
-            elif pubdate < yesterday:
-                #published before yesterday
-                break
-                
-        tweet = ''
-        if len(added) + len(revised) < 4:
-            revised = revised_auth
+            start = desc.find(' by')
+            end = desc.find(' on')
+            byline = desc[start:end]
             
-        if len(added) > 0:
-            if len(added) == 1:
-                tweet = tweet + 'added ' + added[0] + ' as a new entry.'
-            else: #>1
-                tweet = tweet + 'added ' + listEntries(added) + ' as new entries.'
-            if len(revised) > 0:
-                tweet = tweet + ' Also, the SEP revised ' + listEntries(revised) + '.'
-        elif len(revised) > 0:
-            if len(revised) > 2:
-                tweet = tweet + 'revised ' + str(len(revised)) + ' entries: ' + listEntries(revised) + '.'
+            if desc.split(' ')[0] == 'Revised':
+                revised.append(str(entry.title)[7:-8] )
+                revised_auth.append(str(entry.title)[7:-8] + byline)
+            elif desc.split(' ')[0] == 'New':
+                added.append(str(entry.title)[7:-8] + byline)
             else:
-                tweet = tweet + 'revised ' + listEntries(revised) + '.'
+                sendEmail(date.strftime(yesterday, '%a %b %d'), 'Error reading RSS')
+        elif pubdate < yesterday:
+            #published before yesterday
+            break
+            
+    tweet = ''
+    if len(added) + len(revised) < 4:
+        revised = revised_auth
 
-        if len(tweet) > 0:
-            print(str(yesterday))
-            tweet = 'Yesterday, ' + date.strftime(yesterday, '%b %d') + ', the SEP ' + tweet
-            closing = ' To see more inpho and subscribe to live updates, follow both this account and @peoppenheimer.'
-            if len(tweet) + len(closing) <= 280:
-                tweet = tweet + closing
-            print(tweet)
-    except Exception as e:
-        sendEmail(date.strftime(yesterday, '%a %b %d'), str(e))
+    star = u'\U00002728' + ' '
+    memo = u'\U0001F4DD' + ' '	
+        
+    if len(added) > 0:
+        if len(added) == 1:
+            tweet = tweet + 'added ' + star + added[0] + ' as a new entry.'
+        else: #>1
+            tweet = tweet + 'added ' + star + listEntries(added) + ' as new entries.'
+        if len(revised) > 0:
+            tweet = tweet + ' Also, the SEP '
+    if len(revised) > 0:
+        if len(revised) > 2:
+            tweet = tweet + 'revised ' + memo + str(len(revised)) + ' entries: ' + listEntries(revised) + '.'
+        else:
+            tweet = tweet + 'revised ' + memo + listEntries(revised) + '.'
+
+    if len(tweet) > 0:
+        tweet = 'Yesterday, ' + date.strftime(yesterday, '%b %d') + ', the SEP ' + tweet
+        closing = ' To see more inpho and subscribe to live updates, follow both this account and @peoppenheimer.'
+        shortclose = ' For more, follow us and @peoppenheimer.'
+        if len(tweet) + len(closing) <= 280:
+            tweet = tweet + closing
+        elif len(tweet) + len(shortclose) <= 280:
+            tweet = tweet + shortclose
+        api.update_status(tweet)
+        
+except Exception as e:
+    sendEmail(date.strftime(yesterday, '%a %b %d'), str(e))
