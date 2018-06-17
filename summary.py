@@ -39,7 +39,7 @@ def sendEmail(errTime, desc):
 #function used to parse tweets to find corresponding response
 #returns string with link to status, or empty string if error
 def getLink(byline, myID):
-    title = byline[:byline.find(' by')]
+    title = byline[1:byline.find('\" by')]
     myTimeline = api.user_timeline(user_id = myID, count = 30)
     for status in myTimeline:
         if status.in_reply_to_user_id == 12450802: #peoppenheimer ID
@@ -87,8 +87,8 @@ try:
             byline = desc[start:end]
             
             if desc.split(' ')[0] == 'Revised':
-                revised.append(str(entry.title)[7:-8] )
-                revised_auth.append(str(entry.title)[7:-8] + byline)
+                revised.append('\"' + str(entry.title)[7:-8] + '\"')
+                revised_auth.append('\"' + str(entry.title)[7:-8] + '\"' + byline)
             elif desc.split(' ')[0] == 'New':
                 added.append(str(entry.title)[7:-8] + byline)
             else:
@@ -101,8 +101,8 @@ try:
     if len(added) + len(revised) < 4:
         revised = revised_auth
 
-    star = u'\U00002728' + ' '
-    memo = u'\U0001F4DD' + ' '
+    star = 'emoji '#u'\U00002728' + ' '
+    memo = 'emoji '#u'\U0001F4DD' + ' '
         
     if len(added) > 0:
         if len(added) == 1:
@@ -131,7 +131,8 @@ try:
                 tweet = tweet + getLink(added[0], myID)
             else:
                 tweet = tweet + getLink(revised[0], myID)
-        api.update_status(tweet)
+ #       api.update_status(tweet)
+        print(tweet)
         
 except Exception as e:
     sendEmail(date.strftime(yesterday, '%a %b %d '), str(e))
