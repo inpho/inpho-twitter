@@ -101,8 +101,8 @@ try:
     if len(added) + len(revised) < 4:
         revised = revised_auth
 
-    star = 'emoji '#u'\U00002728' + ' '
-    memo = 'emoji '#u'\U0001F4DD' + ' '
+    star = u'\U00002728' + ' '
+    memo = u'\U0001F4DD' + ' '
         
     if len(added) > 0:
         if len(added) == 1:
@@ -113,9 +113,9 @@ try:
             tweet = tweet + ' Also, the SEP '
     if len(revised) > 0:
         if len(revised) > 2:
-            tweet = tweet + 'revised ' + memo + str(len(revised)) + ' entries: ' + listEntries(revised) + '.'
+            tweet = tweet + 'published a revised ' + memo + 'version of ' + str(len(revised)) + ' entries: ' + listEntries(revised) + '.'
         else:
-            tweet = tweet + 'revised ' + memo + listEntries(revised) + '.'
+            tweet = tweet + 'published a revised  ' + memo + 'version of ' + listEntries(revised) + '.'
 
     if len(tweet) > 0:
         tweet = 'Yesterday, ' + date.strftime(yesterday, '%b %d') + ', the SEP ' + tweet
@@ -131,8 +131,7 @@ try:
                 tweet = tweet + getLink(added[0], myID)
             else:
                 tweet = tweet + getLink(revised[0], myID)
- #       api.update_status(tweet)
-        print(tweet)
+        api.update_status(tweet)
         
 except Exception as e:
     sendEmail(date.strftime(yesterday, '%a %b %d '), str(e))
