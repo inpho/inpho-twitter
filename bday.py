@@ -20,7 +20,7 @@ def sendEmail(name, errTime):
         server.sendmail(gmail_sender, [TO], BODY)
         print('email sent: ' + name + errTime)
     except:
-        print('error sending mail')
+        print('error sending mail: ' + name + errTime)
         
 #authentication for twitter bot access
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
@@ -52,28 +52,29 @@ for thinker in thinkers_all:
 
             if 'birth' in curr_thinker:
                 if len(curr_thinker['birth']) != 0 and curr_thinker['birth'][0]['month'] != 0:
-                    if curr_thinker['birth'][0]['month'] == month and curr_thinker['birth'][0]['day'] == day:
-                        age = year - curr_thinker['birth'][0]['year']
-                        if 'death' in curr_thinker and len(curr_thinker['death']) != 0: #initial part of tweet depends on whether they are alive still
-                            tweet = curr_thinker['label'] + ' was born today ' + str(age) + ' years ago in ' + str(curr_thinker['birth'][0]['year']) + '.'
-                            emoji = u'\U0001F389' #popper
+                    if curr_thinker['birth'][0]['month'] == month and curr_thinker['birth'][0]['day'] == day: #bday is today
+                        if len(curr_thinker['related_thinkers']) == 0 and len(curr_thinker['related_ideas']) == 0:
+                            print('not enough for ' + curr_thinker['label'])
                         else:
-                            tweet = 'Today is ' + curr_thinker['label'] + '\'s birthday. They are now ' + str(age) + ' years old. '
-                            emoji = u'\U0001F382' #bday cake
-                            
-                        if 'sep_dir' in curr_thinker and len(curr_thinker['sep_dir']) != 0: #which link to include? is there an SEP article
-                            tweet = tweet + ' Read about them at the SEP at https://plato.stanford.edu/entries/' + curr_thinker['sep_dir']
-                        else:
-                            tweet = tweet + ' \nLearn more at https://en.wikipedia.org/wiki/' + curr_thinker['wiki']
-                            
-                        tweet = tweet + ' \nAlso, visit the InPhO entry at ' + emoji + ' https://www.inphoproject.org' + curr_thinker['url']
-                        tweet_q.append(tweet)
+                            age = year - curr_thinker['birth'][0]['year']
+                            if 'death' in curr_thinker and len(curr_thinker['death']) != 0: #initial part of tweet depends on whether they are alive still
+                                tweet = curr_thinker['label'] + ' was born on this date ' + str(age) + ' years ago in ' + str(curr_thinker['birth'][0]['year']) + '.'
+                                emoji = u'\U0001F389' #popper
+                            else:
+                                tweet = 'Today is ' + curr_thinker['label'] + '\'s birthday. They are now ' + str(age) + ' years old. '
+                                emoji = u'\U0001F382' #bday cake
+                                
+                            if 'sep_dir' in curr_thinker and len(curr_thinker['sep_dir']) != 0: #which link to include? is there an SEP article
+                                tweet = tweet + ' Read about them at the SEP at https://plato.stanford.edu/entries/' + curr_thinker['sep_dir']
+                            else:
+                                tweet = tweet + ' \nLearn more at https://en.wikipedia.org/wiki/' + curr_thinker['wiki']
+                                
+                            tweet = tweet + ' \nAlso, visit the InPhO entry at ' + emoji + ' https://www.inphoproject.org' + curr_thinker['url']
+                            tweet_q.append(tweet)
     except Exception as e:
         sendEmail(thinker['label'], str(e))
-if len(tweet_q) == 0:
-    print('no bday today')
-else:
-    print(tweet_q[0])
+if len(tweet_q) > 0: #at least one bday
+    api.update_status(tweet_q[0])
     for i in range (1, len(tweet_q)):
-     #   time.sleep(3600) #one hour
-        print(tweet_q[i])
+        time.sleep(3600) #one hour
+        api.update_status(tweet_q[i])
