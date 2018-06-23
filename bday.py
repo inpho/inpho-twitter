@@ -58,10 +58,10 @@ for thinker in thinkers_all:
                         else:
                             age = year - curr_thinker['birth'][0]['year']
                             if 'death' in curr_thinker and len(curr_thinker['death']) != 0: #initial part of tweet depends on whether they are alive still
-                                tweet = curr_thinker['label'] + ' was born on this date ' + str(age) + ' years ago in ' + str(curr_thinker['birth'][0]['year']) + '.'
+                                tweet = curr_thinker['label'] + ' was born #OnThisDay ' + str(age) + ' years ago in ' + str(curr_thinker['birth'][0]['year']) + '.'
                                 emoji = u'\U0001F389' #popper
                             else:
-                                tweet = 'Today is ' + curr_thinker['label'] + '\'s birthday. They are now ' + str(age) + ' years old. '
+                                tweet = 'Today is ' + curr_thinker['label'] + '\'s birthday. They are now ' + str(age) + ' years old. #OnThisDay'
                                 emoji = u'\U0001F382' #bday cake
                                 
                             if 'sep_dir' in curr_thinker and len(curr_thinker['sep_dir']) != 0: #which link to include? is there an SEP article
