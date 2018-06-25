@@ -4,7 +4,7 @@ from urllib.request import urlopen
 from requests import get
 from datetime import date
 from bs4 import BeautifulSoup
-from testkeys import * ##################################
+from keys import *
 
 #function used to send an email in order to alert of errors found
 #err is the specified error message based on the issue
@@ -45,7 +45,7 @@ def bdayTweet(tweet, wiki):
         else:
             api.update_status(tweet)
     except Exception as e:
-        sendEmail(tweet, str(e))
+        sendEmail(wiki, str(e))
         
 #authentication for twitter bot access
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
@@ -76,27 +76,22 @@ for thinker in thinkers_all:
             curr_thinker = json.load(urlopen(url))
 
             if 'birth' in curr_thinker:
-                if len(curr_thinker['birth']) != 0 and curr_thinker['birth'][0]['month'] != 0:
-                    if curr_thinker['birth'][0]['month'] == month and curr_thinker['birth'][0]['day'] == day: #bday is today
-                        if len(curr_thinker['related_thinkers']) == 0 and len(curr_thinker['related_ideas']) == 0:
-                            print('not enough for ' + curr_thinker['label'])
-                        else:
-                            age = year - curr_thinker['birth'][0]['year']
-                            if 'death' in curr_thinker and len(curr_thinker['death']) != 0: #initial part of tweet depends on whether they are alive still
+                if len(curr_thinker['birth']) != 0 and curr_thinker['birth'][0]['month'] != 0: #check for any birth date
+                    if curr_thinker['birth'][0]['month'] == month and curr_thinker['birth'][0]['day'] == day: #check for matching birth date
+                        if len(curr_thinker['related_thinkers']) != 0 or len(curr_thinker['related_ideas']) != 0: #check for enough info
+                            if 'death' in curr_thinker and len(curr_thinker['death']) != 0: #check for death date
+                                age = year - curr_thinker['birth'][0]['year']
                                 tweet = curr_thinker['label'] + ' was born #OnThisDay ' + str(age) + ' years ago in ' + str(curr_thinker['birth'][0]['year']) + '.'
                                 emoji = u'\U0001F389' #popper
-                            else:
-                                tweet = 'Today is ' + curr_thinker['label'] + '\'s birthday. They are now ' + str(age) + ' years old. #OnThisDay'
-                                emoji = u'\U0001F382' #bday cake
                                 
-                            if 'sep_dir' in curr_thinker and len(curr_thinker['sep_dir']) != 0: #which link to include? is there an SEP article
-                                tweet = tweet + ' Read about them at the SEP at https://plato.stanford.edu/entries/' + curr_thinker['sep_dir']
-                            else:
-                                tweet = tweet + ' \nLearn more at https://en.wikipedia.org/wiki/' + curr_thinker['wiki']
-                                
-                            tweet = tweet + ' \nAlso, visit the InPhO entry at ' + emoji + ' https://www.inphoproject.org' + curr_thinker['url']
-                            tweet_q.append(tweet)
-                            wiki_q.append(curr_thinker['wiki'])
+                                if 'sep_dir' in curr_thinker and len(curr_thinker['sep_dir']) != 0: #which link to include? is there an SEP article
+                                    tweet = tweet + ' Read about them at the SEP at https://plato.stanford.edu/entries/' + curr_thinker['sep_dir']
+                                else:
+                                    tweet = tweet + ' \nLearn more at https://en.wikipedia.org/wiki/' + curr_thinker['wiki']
+                                    
+                                tweet = tweet + ' \nAlso, visit the InPhO entry at ' + emoji + ' https://www.inphoproject.org' + curr_thinker['url']
+                                tweet_q.append(tweet)
+                                wiki_q.append(curr_thinker['wiki'])
     except Exception as e:
         sendEmail(thinker['label'], str(e))
         
