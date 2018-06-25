@@ -3,7 +3,8 @@ import tweepy, time, urllib.request, json, requests, smtplib
 from urllib.request import urlopen
 from requests import get
 from datetime import date
-from keys import *
+from bs4 import BeautifulSoup
+from testkeys import * ##################################
 
 #function used to send an email in order to alert of errors found
 #err is the specified error message based on the issue
@@ -21,6 +22,30 @@ def sendEmail(name, errTime):
         print('email sent: ' + name + errTime)
     except:
         print('error sending mail: ' + name + errTime)
+
+#function used to scrape photo from wikipedia
+#returns link to photo or '' if none found
+def getImg(soup):
+    for tab in soup.find_all('table'):
+        if tab.get('class')[0] == 'infobox':
+            for image in tab.find_all('img'):
+                link = 'https:' + image.get('src')
+                return link
+    return ''
+
+#function used to decide whether to update_with_media or regular
+#updates status either way with tweet constructed in main body
+def bdayTweet(tweet, wiki):
+    try:
+        wikipage = urllib.request.urlopen('https://en.wikipedia.org/wiki/' + wiki)
+        link = getImg(BeautifulSoup(wikipage, 'html.parser'))
+        if len(link) > 0:
+            open('img.jpg', 'wb').write(requests.get(link).content)
+            api.update_with_media(filename = 'img.jpg', status = tweet)
+        else:
+            api.update_status(tweet)
+    except Exception as e:
+        sendEmail(tweet, str(e))
         
 #authentication for twitter bot access
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
@@ -42,7 +67,7 @@ day = int(today[8:10])
 thinkers = json.load(urlopen('https://www.inphoproject.org/thinker.json'))
 thinkers_all = thinkers['responseData']['results']
 tweet_q = []
-
+wiki_q = []
 for thinker in thinkers_all:
     try:
         if 'url' in thinker:
@@ -71,10 +96,12 @@ for thinker in thinkers_all:
                                 
                             tweet = tweet + ' \nAlso, visit the InPhO entry at ' + emoji + ' https://www.inphoproject.org' + curr_thinker['url']
                             tweet_q.append(tweet)
+                            wiki_q.append(curr_thinker['wiki'])
     except Exception as e:
         sendEmail(thinker['label'], str(e))
+        
 if len(tweet_q) > 0: #at least one bday
-    api.update_status(tweet_q[0])
+    bdayTweet(tweet_q[0], wiki_q[0])
     for i in range (1, len(tweet_q)):
         time.sleep(3600) #one hour
-        api.update_status(tweet_q[i])
+        bdayTweet(tweet_q[i], wiki_q[i])
