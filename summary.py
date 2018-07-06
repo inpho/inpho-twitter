@@ -90,7 +90,7 @@ try:
                 revised.append('\"' + str(entry.title)[7:-8] + '\"')
                 revised_auth.append('\"' + str(entry.title)[7:-8] + '\"' + byline)
             elif desc.split(' ')[0] == 'New':
-                added.append(str(entry.title)[7:-8] + byline)
+                added.append('\"' + str(entry.title)[7:-8] + '\"' + byline)
             else:
                 sendEmail(date.strftime(yesterday, '%a %b %d'), 'Error reading RSS')
         elif pubdate < yesterday:
