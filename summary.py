@@ -103,30 +103,50 @@ try:
 
     star = u'\U00002728' + ' '
     memo = u'\U0001F4DD' + ' '
-        
-    if len(added) > 0:
-        if len(added) == 1:
-            tweet = tweet + 'added ' + star + added[0] + ' as a new entry.'
-        else: #>1
-            tweet = tweet + 'added ' + star + listEntries(added) + ' as new entries.'
-        if len(revised) > 0:
-            tweet = tweet + ' Also, the SEP '
-    if len(revised) > 0:
-        if len(revised) > 2:
-            tweet = tweet + 'published a revised ' + memo + 'version of ' + str(len(revised)) + ' entries: ' + listEntries(revised) + '.'
-        else:
-            tweet = tweet + 'published a revised  ' + memo + 'version of ' + listEntries(revised) + '.'
 
-    if len(tweet) > 0:
-        tweet = 'Yesterday, ' + date.strftime(yesterday, '%b %d') + ', the SEP ' + tweet
+    updateLen = len(added) + len(revised)
+    if updateLen > 0: #check for any updates
+        #always have this beginning
+        tweet = 'Yesterday, ' + date.strftime(yesterday, '%b %d') + ', the SEP '
         closing = ' To see more inpho and subscribe to live updates, follow both this account and @peoppenheimer.'
         shortclose = ' For more, follow us and @peoppenheimer.'
+        #third option: no close.
+
+        #format added entries
+        if len(added) > 0:
+            if len(added) == 1:
+                tweet = tweet + 'added ' + star + added[0] + ' as a new entry.'
+            else: #>1
+                tweet = tweet + 'added ' + star + listEntries(added) + ' as new entries.'
+            if len(revised) > 0:
+                tweet = tweet + ' Also, the SEP '
+                
+        #format revised entries
+        if len(revised) > 0:
+            if len(revised) > 2:
+                tweet = tweet + 'published a revised ' + memo + 'version of ' + str(len(revised)) + ' entries'
+                #in the case of many revisions, only include as many as possible, truncate the rest. max 280 char
+                if len(tweet) + len(listEntries(revised)) > 280:
+                    tweet = tweet + ', including: '
+                    while len(tweet) + len(listEntries(revised)) > 280:
+                        revised = revised[:-1]
+                else:
+                    tweet = tweet + ': '
+                tweet = tweet + listEntries(revised)
+                if len(tweet) < 280:
+                    tweet = tweet + '.'
+            else:
+                tweet = tweet + 'published a revised  ' + memo + 'version of ' + listEntries(revised) + '.'
+
+        #now, check for length to determine what closing to use
         if len(tweet) + len(closing) <= 280:
             tweet = tweet + closing
         elif len(tweet) + len(shortclose) <= 280:
             tweet = tweet + shortclose
-            
-        if len(added) + len(revised) == 1:
+        #else, add no closing.
+
+        #if only one update, include a link to the tweet    
+        if updateLen == 1:
             if len(added) == 1:
                 tweet = tweet + getLink(added[0], myID)
             else:
